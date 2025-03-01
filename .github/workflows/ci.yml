@@ -28,6 +28,12 @@ jobs:
       - name: Run Tests
         run: mvn test
 
+      - name: Upload Test Reports as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: target/test-classes/TEST-*.xml
+
       - name: Install DeepSource CLI v0.8.6
         run: |
           curl -fsSL https://github.com/DeepSourceCorp/cli/releases/download/v0.8.6/deepsource_0.8.6_linux_x86_64.tar.gz | tar -xzv -C /usr/local/bin
