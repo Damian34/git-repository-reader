@@ -1,44 +1,41 @@
-name: CI Pipeline with DeepSource
+name: DeepSource Analysis
 
 on:
   push:
     branches:
-      - main
+      - "**"
   pull_request:
     branches:
-      - main
+      - "main"
 
 jobs:
-  build-and-analyze:
+  analyze:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          fetch-depth: 0
 
-      - name: Build with Maven
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'oracle'
+          java-version: '21'
+
+      - name: Install Maven dependencies
         run: mvn clean install -DskipTests
 
-      - name: Run Tests
-        run: mvn test
+      - name: Run tests with coverage
+        run: mvn clean test jacoco:report
 
-      - name: Upload Test Reports as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-reports
-          path: target/test-classes/TEST-*.xml
+      - name: Install DeepSource CLI
+        if: github.event_name == 'push'
+        run: curl https://deepsource.com/cli | sh
 
-      - name: Install DeepSource CLI v0.8.6
-        run: |
-          curl -fsSL https://github.com/DeepSourceCorp/cli/releases/download/v0.8.6/deepsource_0.8.6_linux_x86_64.tar.gz | tar -xzv -C /usr/local/bin
-
-      - name: Run DeepSource Analysis
+      - name: Report coverage to DeepSource
+        if: github.event_name == 'push'
         env:
           DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
-        run: deepsource issues
+        run: |
+          ./bin/deepsource report --analyzer test-coverage --key java --value-file ./git-repository-reader-engine/target/site/jacoco/jacoco.xml
