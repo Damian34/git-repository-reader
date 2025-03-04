@@ -4,6 +4,8 @@ import com.damian34.gitreader.exception.GitRepositoryConnectionException;
 import com.damian34.gitreader.exception.GitRepositoryException;
 import com.damian34.gitreader.infrastructure.util.FileUtils;
 import com.damian34.gitreader.model.queue.GitConnectionCredentials;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.TransportException;
@@ -22,7 +24,8 @@ public class JGitRepositoryLoader {
     @Value("${jgit.temp-root-folder}")
     private String tempRootFolder;
 
-    // TODO: add circusBreaker
+    @CircuitBreaker(name = "git-repository-loader")
+    @Retry(name = "git-repository-loader")
     public JGitRepository loadRepository(GitConnectionCredentials credentials) {
         validateCredentials(credentials);
         Path tempRepositoryDir = null;

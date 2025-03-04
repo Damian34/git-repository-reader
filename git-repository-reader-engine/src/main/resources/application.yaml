@@ -1,3 +1,19 @@
 
 jgit:
   temp-root-folder: temp_jgit_repos
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      git-repository-loader:
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 4
+        recordExceptions:
+          - com.damian34.gitreader.exception.GitRepositoryConnectionException
+  retry:
+    instances:
+      git-repository-loader:
+        maxAttempts: 5
+        waitDuration: 30s
