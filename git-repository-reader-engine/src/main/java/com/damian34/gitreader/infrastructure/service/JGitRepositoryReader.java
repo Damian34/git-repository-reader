@@ -1,12 +1,12 @@
 package com.damian34.gitreader.infrastructure.service;
 
-import com.damian34.gitreader.domain.model.Branch;
-import com.damian34.gitreader.domain.model.Commit;
 import com.damian34.gitreader.domain.service.GitRepositoryReader;
-import com.damian34.gitreader.domain.service.vo.GitConnectionCredentials;
 import com.damian34.gitreader.exception.GitRepositoryException;
 import com.damian34.gitreader.infrastructure.service.repository.JGitRepository;
 import com.damian34.gitreader.infrastructure.service.repository.JGitRepositoryLoader;
+import com.damian34.gitreader.model.queue.GitConnectionCredentials;
+import com.damian34.gitreader.model.repository.Branch;
+import com.damian34.gitreader.model.repository.Commit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
@@ -26,7 +26,7 @@ public abstract class JGitRepositoryReader implements GitRepositoryReader {
     protected final JGitRepositoryLoader jGitRepositoryLoader;
 
     @Override
-    public List<Branch> read(GitConnectionCredentials credentials) {
+    public List<Branch> fetchBranches(GitConnectionCredentials credentials) {
         var mappedCredentials = mapGitConnectionCredentials(credentials);
         try (JGitRepository gitRepository = jGitRepositoryLoader.loadRepository(mappedCredentials)) {
             List<Ref> branches = getGitBranches(gitRepository);

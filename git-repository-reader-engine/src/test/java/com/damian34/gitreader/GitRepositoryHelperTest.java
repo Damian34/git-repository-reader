@@ -1,6 +1,6 @@
 package com.damian34.gitreader;
 
-import com.damian34.gitreader.domain.model.Branch;
+import com.damian34.gitreader.model.repository.Branch;
 
 import java.util.List;
 

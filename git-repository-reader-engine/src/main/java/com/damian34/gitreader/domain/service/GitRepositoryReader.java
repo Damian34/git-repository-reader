@@ -1,7 +1,8 @@
 package com.damian34.gitreader.domain.service;
 
-import com.damian34.gitreader.domain.model.Branch;
-import com.damian34.gitreader.domain.service.vo.GitConnectionCredentials;
+
+import com.damian34.gitreader.model.queue.GitConnectionCredentials;
+import com.damian34.gitreader.model.repository.Branch;
 
 import java.util.List;
 
@@ -9,5 +10,5 @@ public interface GitRepositoryReader {
 
     boolean isSupported(String url);
 
-    List<Branch> read(GitConnectionCredentials credentials);
+    List<Branch> fetchBranches(GitConnectionCredentials credentials);
 }

@@ -1,4 +1,4 @@
-package com.damian34.gitreader.domain.service.vo;
+package com.damian34.gitreader.model.queue;
 
 public record GitConnectionCredentials(
         String url,

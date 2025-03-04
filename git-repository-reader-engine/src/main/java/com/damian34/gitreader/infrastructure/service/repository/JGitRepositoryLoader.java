@@ -1,9 +1,9 @@
 package com.damian34.gitreader.infrastructure.service.repository;
 
-import com.damian34.gitreader.domain.service.vo.GitConnectionCredentials;
 import com.damian34.gitreader.exception.GitRepositoryConnectionException;
 import com.damian34.gitreader.exception.GitRepositoryException;
 import com.damian34.gitreader.infrastructure.util.FileUtils;
+import com.damian34.gitreader.model.queue.GitConnectionCredentials;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.TransportException;

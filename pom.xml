@@ -9,6 +9,7 @@
     <description>Multi-module project for Git Repository Reader</description>
 
     <modules>
+        <module>git-repository-reader-model</module>
         <module>git-repository-reader-engine</module>
     </modules>
 
@@ -26,6 +27,12 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.damian34</groupId>
+                <artifactId>git-repository-reader-model</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-parent</artifactId>

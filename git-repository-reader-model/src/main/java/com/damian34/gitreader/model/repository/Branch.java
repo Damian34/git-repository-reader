@@ -1,4 +1,4 @@
-package com.damian34.gitreader.domain.model;
+package com.damian34.gitreader.model.repository;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
