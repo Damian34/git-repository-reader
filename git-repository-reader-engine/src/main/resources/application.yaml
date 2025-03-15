@@ -1,6 +1,7 @@
-
-jgit:
-  temp-root-folder: temp_jgit_repos
+spring:
+  data:
+    mongodb:
+      uri: ${MONGO_URL:mongodb://root:pass123@localhost:27017/git_repository_db?authSource=admin}
 
 resilience4j:
   circuitbreaker:
@@ -17,3 +18,6 @@ resilience4j:
       git-repository-loader:
         maxAttempts: 5
         waitDuration: 30s
+
+jgit:
+  temp-root-folder: ${TEMP_ROOT_FOLDER:tmp_jgit_repositories}

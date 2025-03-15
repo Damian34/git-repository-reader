@@ -1,0 +1,53 @@
+volumes:
+  api-temp:
+    driver: local
+  git-repository-db:
+    driver: local
+
+networks:
+  api-network:
+
+services:
+  mongo-db:
+    image: "mongo:latest"
+    container_name: mongo-db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGO_ROOT_USERNAME}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_ROOT_PASSWORD}"
+      MONGO_INITDB_DATABASE: "${MONGO_DB_NAME}"
+    ports:
+      - "27017:27017"
+    volumes:
+      - git-repository-db:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+    networks:
+      - api-network
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+        reservations:
+          memory: 256m
+  git-repository-reader-engine:
+    build: ./git-repository-reader-engine
+    restart: always
+    depends_on:
+      - mongo-db
+    ports:
+      - "8081:8080"
+    environment:
+      MONGO_URL: ${MONGO_URL}
+      KAFKA_URL: ${KAFKA_URL}
+      KAFKA_GROUP_ID: ${KAFKA_GROUP_ID}
+      TEMP_ROOT_FOLDER: ${TEMP_ROOT_FOLDER}
+    volumes:
+      - api-temp:/tmp/${TEMP_ROOT_FOLDER}
+    networks:
+      - api-network
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+        reservations:
+          memory: 512m
