@@ -12,6 +12,7 @@ import java.text.MessageFormat;
 public class GitHubRepositoryReader extends JGitRepositoryReader {
 
     public static final String GITHUB_DOMAIN = "github.com";
+    public static final String URL_BASE = "https://github.com";
     public static final String GITHUB_ORIGIN_PATH = "refs/remotes/origin/";
 
     public GitHubRepositoryReader(JGitRepositoryLoader jGitRepositoryLoader) {
@@ -24,7 +25,7 @@ public class GitHubRepositoryReader extends JGitRepositoryReader {
     }
 
     @Override
-    protected String buildCloneRepositoryUrl(String url) {
+    public String buildGitCloneUrl(String url) {
         String urlBase = url.substring(0, url.indexOf(GITHUB_DOMAIN) + GITHUB_DOMAIN.length());
         String repoStrip = url.substring(urlBase.length() + 1);
         String[] repoParts = repoStrip.split("/");
@@ -32,7 +33,7 @@ public class GitHubRepositoryReader extends JGitRepositoryReader {
             log.error("Repository URL is too short or malformed: {}", url);
             throw new GitRepositoryException("Repository URL is too short or malformed: " + url);
         }
-        String cloneUrl = MessageFormat.format("{0}/{1}/{2}", urlBase, repoParts[0], repoParts[1]);
+        String cloneUrl = MessageFormat.format("{0}/{1}/{2}", URL_BASE, repoParts[0], repoParts[1]);
         if (!cloneUrl.endsWith(".git")) {
             cloneUrl += ".git";
         }

@@ -6,4 +6,7 @@ public record GitConnectionCredentials(
         String password,
         String token
 ) {
+    public GitConnectionCredentials updateUrl(String gitCloneUrl) {
+        return new GitConnectionCredentials(gitCloneUrl, username, password, token);
+    }
 }

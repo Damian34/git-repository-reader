@@ -1,28 +1,19 @@
 package com.damian34.gitreader.infrastructure.service.persistence;
 
-import com.damian34.gitreader.domain.service.GitPersistenceService;
+import com.damian34.gitreader.domain.service.presistence.GitStatusPersistenceService;
+import com.damian34.gitreader.infrastructure.db.GitStatusRepository;
 import com.damian34.gitreader.model.ExceptionDetails;
 import com.damian34.gitreader.model.ProcessStatus;
-import com.damian34.gitreader.model.document.GitRepositoryDocument;
 import com.damian34.gitreader.model.document.GitStatusDocument;
-import com.damian34.gitreader.model.repository.Branch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class GitPersistenceServiceImpl implements GitPersistenceService {
-
-    @Override
-    public void saveGitBranches(String url, List<Branch> branches) {
-        var document = new GitRepositoryDocument(url, branches);
-        log.info("Saving GitRepositoryDocument: {}", document);
-        // TODO: add save to mongo
-    }
+public class GitStatusPersistenceServiceImpl implements GitStatusPersistenceService {
+    private final GitStatusRepository gitStatusRepository;
 
     @Override
     public void saveGitStatusCompleted(String url) {
@@ -39,6 +30,6 @@ public class GitPersistenceServiceImpl implements GitPersistenceService {
 
     private void saveGitStatus(GitStatusDocument document) {
         log.info("Saving GitStatusDocument: {}", document);
-        // TODO: add save to mongo
+        gitStatusRepository.save(document);
     }
 }

@@ -6,6 +6,7 @@ import com.damian34.gitreader.infrastructure.util.FileUtils;
 import com.damian34.gitreader.model.queue.GitConnectionCredentials;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
+import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.TransportException;
@@ -57,10 +58,10 @@ public class JGitRepositoryLoader {
     }
 
     private CredentialsProvider createCredentialsProvider(GitConnectionCredentials credentials) {
-        if (credentials.token() != null) {
+        if (StringUtils.isNotBlank(credentials.token())) {
             return new UsernamePasswordCredentialsProvider("git", credentials.token());
         }
-        if (credentials.username() != null && credentials.password() != null) {
+        if (StringUtils.isNotBlank(credentials.username()) && StringUtils.isNotBlank(credentials.password())) {
             return new UsernamePasswordCredentialsProvider(credentials.username(), credentials.password());
         }
         return CredentialsProvider.getDefault();

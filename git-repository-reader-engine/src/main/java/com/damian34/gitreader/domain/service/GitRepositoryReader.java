@@ -10,5 +10,7 @@ public interface GitRepositoryReader {
 
     boolean isSupported(String url);
 
+    String buildGitCloneUrl(String url);
+
     List<Branch> fetchBranches(GitConnectionCredentials credentials);
 }

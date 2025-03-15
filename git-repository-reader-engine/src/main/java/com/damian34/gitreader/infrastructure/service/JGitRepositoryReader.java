@@ -27,8 +27,7 @@ public abstract class JGitRepositoryReader implements GitRepositoryReader {
 
     @Override
     public List<Branch> fetchBranches(GitConnectionCredentials credentials) {
-        var mappedCredentials = mapGitConnectionCredentials(credentials);
-        try (JGitRepository gitRepository = jGitRepositoryLoader.loadRepository(mappedCredentials)) {
+        try (JGitRepository gitRepository = jGitRepositoryLoader.loadRepository(credentials)) {
             List<Ref> branches = getGitBranches(gitRepository);
             return branches.stream().map(branch -> {
                 var commits = getGitCommits(gitRepository.getTempRepositoryDir().toString(), branch.getName());
@@ -40,8 +39,6 @@ public abstract class JGitRepositoryReader implements GitRepositoryReader {
             }).collect(Collectors.toList());
         }
     }
-
-    protected abstract String buildCloneRepositoryUrl(String url);
 
     protected abstract String getOriginPath();
 
@@ -90,14 +87,5 @@ public abstract class JGitRepositoryReader implements GitRepositoryReader {
             log.error("Error occurred while processing commits for Git repository.", e);
             throw new GitRepositoryException("Error occurred while processing commits for Git repository.", e);
         }
-    }
-
-    private GitConnectionCredentials mapGitConnectionCredentials(GitConnectionCredentials credentials) {
-        return new GitConnectionCredentials(
-                buildCloneRepositoryUrl(credentials.url()),
-                credentials.username(),
-                credentials.password(),
-                credentials.token()
-        );
     }
 }
