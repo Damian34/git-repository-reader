@@ -1,0 +1,30 @@
+spring:
+  data:
+    mongodb:
+      uri: ${MONGO_URL:mongodb://root:pass123@localhost:27017/git_repository_db?authSource=admin}
+  kafka:
+    consumer:
+      bootstrap-servers: ${KAFKA_URL:localhost:29092}
+      group-id: ${KAFKA_GROUP_ID:git-app-group}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      git-repository-loader:
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 4
+        recordExceptions:
+          - com.damian34.gitreader.exception.GitRepositoryConnectionException
+  retry:
+    instances:
+      git-repository-loader:
+        maxAttempts: 5
+        waitDuration: 30s
+
+jgit:
+  temp-root-folder: ${TEMP_ROOT_FOLDER:tmp_jgit_repositories}
