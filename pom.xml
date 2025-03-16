@@ -11,6 +11,7 @@
     <modules>
         <module>git-repository-reader-model</module>
         <module>git-repository-reader-engine</module>
+        <module>git-repository-reader-client</module>
     </modules>
 
     <properties>
