@@ -12,7 +12,10 @@ This service retrieves access data from Kafka, connects to a Git repository, ret
 
 This service exposes REST endpoints. One of them sends a message to Kafka to start the process of fetching data from the Git repository. Other endpoints allow fetching information about already retrieved repositories or their statuses.
 
-**The service is not implemented yet.**
+#### Swagger
+
+- **Swagger UI**: [http://localhost:8082/swagger-ui/index.html]
+- **API Documentation (JSON)**: [http://localhost:8082/v3/api-docs]
 
 ## Technologies
 
@@ -27,3 +30,19 @@ This service exposes REST endpoints. One of them sends a message to Kafka to sta
 - **Lombok** – A library used to reduce boilerplate code by automatically generating common methods.
 - **JGit** – a library for working with Git repositories, used to retrieve commits and manage repositories.
 - **DeepSource** – a static analysis tool integrated into the CI pipeline to automatically check code quality and security vulnerabilities.
+- **Swagger/OpenAPI** – for documenting and visualizing the REST API endpoints.
+- **MapStruct** – a code generator used to simplify the process of mapping between Java beans.
+
+## Setup
+
+### Prerequisites
+- Java 21
+- Docker (for running MongoDB and Kafka locally)
+- Maven for building the project
+
+### Installation Steps
+
+- git clone https://github.com/Damian34/git-repository-reader.git
+- cd git-repository-reader
+- mvn clean install (or alternatively, to skip tests: mvn clean install -Dtest)
+- docker-compose up
