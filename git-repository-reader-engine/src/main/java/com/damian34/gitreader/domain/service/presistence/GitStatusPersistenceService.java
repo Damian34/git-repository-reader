@@ -1,7 +1,9 @@
 package com.damian34.gitreader.domain.service.presistence;
 
 public interface GitStatusPersistenceService {
-    void saveGitStatusCompleted(String url);
+    void cleanGitStatus(String url, String cloneUrl);
 
-    void saveGitStatusException(String url, Exception e);
+    void saveGitStatusCompleted(String url, String cloneUrl);
+
+    void saveGitStatusFailed(String url, Exception e);
 }

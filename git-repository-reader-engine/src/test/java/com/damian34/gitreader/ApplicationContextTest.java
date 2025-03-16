@@ -2,10 +2,8 @@ package com.damian34.gitreader;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class ApplicationContextTestIntegrationTest extends AbstractBaseIntegrationTest {
+class ApplicationContextTest extends AbstractBaseIntegrationTest {
 
 	@Test
 	void springContextTest() {

@@ -16,20 +16,29 @@ public class GitStatusPersistenceServiceImpl implements GitStatusPersistenceServ
     private final GitStatusRepository gitStatusRepository;
 
     @Override
-    public void saveGitStatusCompleted(String url) {
-        var document = new GitStatusDocument(url, ProcessStatus.COMPLETED, null);
+    public void cleanGitStatus(String url, String cloneUrl) {
+        if(cloneUrl != null) {
+            gitStatusRepository.deleteByCloneUrl(cloneUrl);
+        } else {
+            gitStatusRepository.deleteById(url);
+        }
+    }
+
+    @Override
+    public void saveGitStatusCompleted(String url, String cloneUrl) {
+        var document = new GitStatusDocument(url, cloneUrl, ProcessStatus.COMPLETED, null);
         saveGitStatus(document);
     }
 
     @Override
-    public void saveGitStatusException(String url, Exception e) {
+    public void saveGitStatusFailed(String url, Exception e) {
         var error = new ExceptionDetails(e.getClass().getSimpleName(), e.getMessage());
-        var document = new GitStatusDocument(url, ProcessStatus.EXCEPTION, error);
+        var document = new GitStatusDocument(url, null, ProcessStatus.FAILED, error);
         saveGitStatus(document);
     }
 
     private void saveGitStatus(GitStatusDocument document) {
-        log.info("Saving GitStatusDocument: {}", document);
+        log.info("Saving GitStatusDocument with url: {}", document.getUrl());
         gitStatusRepository.save(document);
     }
 }

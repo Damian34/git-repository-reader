@@ -16,5 +16,6 @@ import java.util.List;
 public class GitRepositoryDocument {
     @Id
     private String url;
+    private String cloneUrl;
     private List<Branch> branches;
 }

@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface GitRepositoryPersistenceService {
 
-    void cleanGitRepository(String url);
+    void cleanGitRepository(String url, String cloneUrl);
 
-    void saveGitBranches(String url, List<Branch> branches);
+    void saveGitBranches(String url, String cloneUrl, List<Branch> branches);
 }
