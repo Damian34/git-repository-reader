@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
-public class ClientControllerTest extends AbstractBaseIntegrationTest {
+class ClientControllerTest extends AbstractBaseIntegrationTest {
 
     private static final String REPOSITORY_URL = "https://github.com/Damian34/spring-security-jwt-auth";
 
@@ -40,14 +40,14 @@ public class ClientControllerTest extends AbstractBaseIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockitoBean
-    private KafkaCredentialsMessageSender sender;
-
     @Autowired
     private GitStatusRepository gitStatusRepository;
 
     @Autowired
     private GitRepositoryDocumentRepository gitRepositoryDocumentRepository;
+
+    @MockitoBean
+    private KafkaCredentialsMessageSender kafkaCredentialsMessageSender;
 
     @BeforeEach
     void setUp() {
@@ -67,7 +67,7 @@ public class ClientControllerTest extends AbstractBaseIntegrationTest {
                 .andExpect(status().isOk());
 
         // then
-        Mockito.verify(sender, Mockito.times(1)).sendMessage(Mockito.any());
+        Mockito.verify(kafkaCredentialsMessageSender, Mockito.times(1)).sendMessage(Mockito.any());
         var statusDocument = gitStatusRepository.findAll();
         Assertions.assertFalse(statusDocument.isEmpty(), "GitStatusDocument should exists.");
         var status = statusDocument.getFirst();
