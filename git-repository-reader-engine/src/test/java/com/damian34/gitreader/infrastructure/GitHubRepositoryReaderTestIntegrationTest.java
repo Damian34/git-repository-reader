@@ -1,5 +1,7 @@
 package com.damian34.gitreader.infrastructure;
 
+import com.damian34.gitreader.GitData;
+import com.damian34.gitreader.AbstractBaseIntegrationTest;
 import com.damian34.gitreader.infrastructure.service.GitHubRepositoryReader;
 import com.damian34.gitreader.model.queue.GitConnectionCredentials;
 import com.damian34.gitreader.model.repository.Branch;
@@ -7,21 +9,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-
 import java.util.List;
 
-@SpringBootTest
-class GitHubRepositoryReaderTest {
+class GitHubRepositoryReaderTestIntegrationTest extends AbstractBaseIntegrationTest {
 
     @Autowired
     private GitHubRepositoryReader gitHubRepositoryReader;
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "https://github.com/Damian34/spring-security-jwt-auth",
-            "github.com/Damian34/spring-security-jwt-auth"
-    })
+    @ValueSource(strings = { GitData.GITHUB_URL_1, GitData.GITHUB_URL_2 })
     void shouldFindRepositoryBranchesTest(String url) {
         // given
         var gitUrl = gitHubRepositoryReader.buildGitCloneUrl(url);

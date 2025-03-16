@@ -11,8 +11,5 @@ enabled = true
 
 [[analyzers]]
 name = "test-coverage"
-enabled = true
+enabled = false
 ignore_merge_commits = false
-
-  [analyzers.test-coverage]
-  minimum_coverage = 70

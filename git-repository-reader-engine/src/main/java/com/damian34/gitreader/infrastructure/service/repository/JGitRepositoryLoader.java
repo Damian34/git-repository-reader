@@ -30,14 +30,9 @@ public class JGitRepositoryLoader {
     public JGitRepository loadRepository(GitConnectionCredentials credentials) {
         validateCredentials(credentials);
         Path tempRepositoryDir = null;
-
         try {
             tempRepositoryDir = FileUtils.createTempDirectory(tempRootFolder, UUID.randomUUID().toString());
-            var git = Git.cloneRepository()
-                    .setURI(credentials.url())
-                    .setDirectory(tempRepositoryDir.toFile())
-                    .setCredentialsProvider(createCredentialsProvider(credentials))
-                    .call();
+            var git = cloneRepository(credentials.url(), tempRepositoryDir, createCredentialsProvider(credentials));
             return new JGitRepository(tempRepositoryDir, git);
         } catch (TransportException e) {
             log.error("Failed to connect to the Git repository with credentials: {}", credentials, e);
@@ -48,6 +43,14 @@ public class JGitRepositoryLoader {
             FileUtils.deleteDirectory(tempRepositoryDir);
             throw new GitRepositoryException("An exception occurred while trying to download the Git repository.", e);
         }
+    }
+
+    private Git cloneRepository(String url, Path tempDirectory, CredentialsProvider credentialsProvider) throws Exception {
+        return Git.cloneRepository()
+                .setURI(url)
+                .setDirectory(tempDirectory.toFile())
+                .setCredentialsProvider(credentialsProvider)
+                .call();
     }
 
     private void validateCredentials(GitConnectionCredentials credentials) {

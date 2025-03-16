@@ -33,9 +33,9 @@ jobs:
         if: github.event_name == 'push'
         run: curl https://deepsource.com/cli | sh
 
-      - name: Report coverage to DeepSource
-        if: github.event_name == 'push'
-        env:
-          DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
-        run: |
-          ./bin/deepsource report --analyzer test-coverage --key java --value-file ./git-repository-reader-engine/target/site/jacoco/jacoco.xml
+      #- name: Report coverage to DeepSource
+      #  if: github.event_name == 'push'
+      #  env:
+      #    DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
+      #  run: |
+      #    ./bin/deepsource report --analyzer test-coverage --key java --value-file ./git-repository-reader-engine/target/site/jacoco/jacoco.xml

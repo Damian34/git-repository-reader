@@ -1,4 +1,7 @@
 spring:
+  data:
+    mongodb:
+      uri: ${MONGO_URL:mongodb://root:pass123@localhost:27017/git_repository_db?authSource=admin}
   kafka:
     consumer:
       bootstrap-servers: ${KAFKA_URL:localhost:29092}
@@ -6,9 +9,6 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-  data:
-    mongodb:
-      uri: ${MONGO_URL:mongodb://root:pass123@localhost:27017/git_repository_db?authSource=admin}
 
 resilience4j:
   circuitbreaker:

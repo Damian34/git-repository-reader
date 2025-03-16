@@ -14,6 +14,10 @@
 	<name>Git Repository Reader Engine</name>
 	<description>Engine module for Git Repository Reader</description>
 
+	<properties>
+		<org.testcontainers.version>1.20.0</org.testcontainers.version>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.damian34</groupId>
@@ -44,6 +48,30 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers</artifactId>
+			<version>${org.testcontainers.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>${org.testcontainers.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>mongodb</artifactId>
+			<version>${org.testcontainers.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>kafka</artifactId>
+			<version>${org.testcontainers.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
