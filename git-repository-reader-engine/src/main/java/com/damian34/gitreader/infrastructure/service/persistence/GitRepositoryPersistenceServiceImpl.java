@@ -17,14 +17,18 @@ public class GitRepositoryPersistenceServiceImpl implements GitRepositoryPersist
     private final GitRepositoryDocumentRepository gitRepositoryDocumentRepository;
 
     @Override
-    public void cleanGitRepository(String url) {
-        gitRepositoryDocumentRepository.deleteById(url);
+    public void cleanGitRepository(String url, String cloneUrl) {
+        if(cloneUrl != null) {
+            gitRepositoryDocumentRepository.deleteByCloneUrl(cloneUrl);
+        } else {
+            gitRepositoryDocumentRepository.deleteById(url);
+        }
     }
 
     @Override
-    public void saveGitBranches(String url, List<Branch> branches) {
-        var document = new GitRepositoryDocument(url, branches);
-        log.info("Saving GitRepositoryDocument: {}", document);
+    public void saveGitBranches(String url, String cloneUrl, List<Branch> branches) {
+        var document = new GitRepositoryDocument(url, cloneUrl, branches);
+        log.info("Saving GitRepositoryDocument with url: {}", document.getUrl());
         gitRepositoryDocumentRepository.save(document);
     }
 }

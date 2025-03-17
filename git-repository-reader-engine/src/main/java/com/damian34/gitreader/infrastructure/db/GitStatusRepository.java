@@ -4,4 +4,5 @@ import com.damian34.gitreader.model.document.GitStatusDocument;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface GitStatusRepository extends MongoRepository<GitStatusDocument, String> {
+    void deleteByCloneUrl(String cloneUrl);
 }

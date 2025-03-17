@@ -17,8 +17,8 @@ public class KafkaMessageListener {
     private final ObjectMapper objectMapper;
 
     @SneakyThrows
-    @KafkaListener(topics = "git-credentials")
-    public void gitCredentialsListener(String message) {
+    @KafkaListener(topics = "${spring.kafka.topics.git-credentials}")
+    public void credentialsListener(String message) {
         log.info("Received git-credentials message: {}", message);
         GitConnectionCredentials credentials = objectMapper.readValue(message, GitConnectionCredentials.class);
         gitRepositoryFacade.processRepositoryData(credentials);

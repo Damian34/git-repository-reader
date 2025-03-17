@@ -2,14 +2,17 @@ package com.damian34.gitreader.domain.service;
 
 import com.damian34.gitreader.domain.service.presistence.GitRepositoryPersistenceService;
 import com.damian34.gitreader.domain.service.presistence.GitStatusPersistenceService;
+import com.damian34.gitreader.exception.GlobalException;
 import com.damian34.gitreader.exception.NotFoundGitReaderException;
 import com.damian34.gitreader.model.queue.GitConnectionCredentials;
 import com.damian34.gitreader.model.repository.Branch;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GitRepositoryFacade {
@@ -19,18 +22,31 @@ public class GitRepositoryFacade {
     private final GitRepositoryValidator gitRepositoryValidator;
 
     public void processRepositoryData(GitConnectionCredentials credentials) {
-        try {
+        try{
             gitRepositoryValidator.validateCredentials(credentials);
             var gitReader = findReader(credentials.url());
             var gitCloneUrl = gitReader.buildGitCloneUrl(credentials.url());
             var updatedCredentials = credentials.updateUrl(gitCloneUrl);
-            gitRepositoryPersistenceService.cleanGitRepository(credentials.url());
             List<Branch> branches = gitReader.fetchBranches(updatedCredentials);
-            gitRepositoryPersistenceService.saveGitBranches(updatedCredentials.url(), branches);
-            gitStatusPersistenceService.saveGitStatusCompleted(updatedCredentials.url());
-        } catch (Exception e) {
-            gitStatusPersistenceService.saveGitStatusException(credentials.url(), e);
+            clean(credentials.url(), gitCloneUrl);
+            gitRepositoryPersistenceService.saveGitBranches(credentials.url(), gitCloneUrl, branches);
+            gitStatusPersistenceService.saveGitStatusCompleted(credentials.url(), gitCloneUrl);
+        } catch (GlobalException e) {
+            onFail(credentials.url(), e);
+        } catch(Exception e) {
+            log.error("Unexpected error occurred for git repository URL {}: ", credentials.url(), e);
+            onFail(credentials.url(), e);
         }
+    }
+
+    private void onFail(String url, Exception e) {
+        clean(url, null);
+        gitStatusPersistenceService.saveGitStatusFailed(url, e);
+    }
+
+    private void clean(String url, String cloneUrl) {
+        gitRepositoryPersistenceService.cleanGitRepository(url, cloneUrl);
+        gitStatusPersistenceService.cleanGitStatus(url, cloneUrl);
     }
 
     private GitRepositoryReader findReader(String url) {
@@ -41,3 +57,22 @@ public class GitRepositoryFacade {
     }
 
 }
+
+
+    /*private Optional<List<Branch>> processFetchBranches(GitConnectionCredentials credentials,  GitRepositoryReader gitReader, String gitCloneUrl) {
+        try {
+            var updatedCredentials = credentials.updateUrl(gitCloneUrl);
+            List<Branch> branches = gitReader.fetchBranches(updatedCredentials);
+            return Optional.of(branches);
+        } catch (Exception e) {
+            onFail(credentials.url(), e);
+            return Optional.empty();
+        }
+    }*/
+            /*var branchesOpt = processFetchBranches(credentials, gitReader, gitCloneUrl);
+            if(branchesOpt.isPresent()) {
+                List<Branch> branches = branchesOpt.get();
+                clean(credentials.url(), gitCloneUrl);
+                gitRepositoryPersistenceService.saveGitBranches(credentials.url(), gitCloneUrl, branches);
+                gitStatusPersistenceService.saveGitStatusCompleted(credentials.url(), gitCloneUrl);
+            }*/

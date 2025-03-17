@@ -15,6 +15,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class GitStatusDocument {
     @Id
     private String url;
+    private String cloneUrl;
     private ProcessStatus status;
     private ExceptionDetails exception;
 }

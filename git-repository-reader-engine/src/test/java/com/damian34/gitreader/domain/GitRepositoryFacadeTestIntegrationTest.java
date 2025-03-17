@@ -48,7 +48,7 @@ class GitRepositoryFacadeTestIntegrationTest extends AbstractBaseIntegrationTest
         var statusDocument = gitStatusRepository.findAll();
         Assertions.assertFalse(statusDocument.isEmpty(), "GitStatusDocument should exists.");
         var status = statusDocument.getFirst();
-        Assertions.assertEquals(ProcessStatus.EXCEPTION, status.getStatus(), "GitStatusDocument should have EXCEPTION");
+        Assertions.assertEquals(ProcessStatus.FAILED, status.getStatus(), "GitStatusDocument should be FAILED");
         Assertions.assertEquals(status.getException().getType(), NotFoundGitReaderException.class.getSimpleName());
     }
 

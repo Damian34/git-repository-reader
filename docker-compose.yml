@@ -26,7 +26,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512m
+          memory: 412m
         reservations:
           memory: 256m
   kafka:
@@ -57,7 +57,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512m
+          memory: 412m
         reservations:
           memory: 256m
   kafka-ui:
@@ -70,12 +70,14 @@ services:
       KAFKA_CLUSTERS_0_ZOOKEEPER: "zookeeper:2181"
     ports:
       - "8090:8080"
+    depends_on:
+      - kafka
     networks:
       - kafka-network
     deploy:
       resources:
         limits:
-          memory: 512m
+          memory: 412m
         reservations:
           memory: 256m
   mongo-db:
@@ -83,9 +85,9 @@ services:
     container_name: mongo-db
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: "${MONGO_ROOT_USERNAME}"
-      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_ROOT_PASSWORD}"
-      MONGO_INITDB_DATABASE: "${MONGO_DB_NAME}"
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
     ports:
       - "27017:27017"
     volumes:
@@ -96,7 +98,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512m
+          memory: 412m
         reservations:
           memory: 256m
   git-repository-reader-engine:
@@ -104,20 +106,44 @@ services:
     restart: always
     depends_on:
       - mongo-db
+      - kafka
     ports:
-      - "8081:8080"
+      - "8081:8081"
     environment:
       MONGO_URL: ${MONGO_URL}
       KAFKA_URL: ${KAFKA_URL}
       KAFKA_GROUP_ID: ${KAFKA_GROUP_ID}
       TEMP_ROOT_FOLDER: ${TEMP_ROOT_FOLDER}
+      KAFKA_GIT_CREDENTIALS_TOPIC: ${KAFKA_GIT_CREDENTIALS_TOPIC}
     volumes:
       - api-temp:/tmp/${TEMP_ROOT_FOLDER}
     networks:
       - api-network
+      - kafka-network
     deploy:
       resources:
         limits:
-          memory: 1g
-        reservations:
           memory: 512m
+        reservations:
+          memory: 256m
+  git-repository-reader-client:
+    build: ./git-repository-reader-client
+    restart: always
+    depends_on:
+      - mongo-db
+      - kafka
+    ports:
+      - "8082:8082"
+    environment:
+      MONGO_URL: ${MONGO_URL}
+      KAFKA_URL: ${KAFKA_URL}
+      KAFKA_GIT_CREDENTIALS_TOPIC: ${KAFKA_GIT_CREDENTIALS_TOPIC}
+    networks:
+      - api-network
+      - kafka-network
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+        reservations:
+          memory: 256m
