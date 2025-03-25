@@ -1,8 +1,6 @@
 # Git Repository Reader
 
-## General Description
-
-The project is designed as an application based on two microservices. The architecture utilizes a message queue system (Kafka) to enable communication between services. The goal of the application is to retrieve commit data from specified Git repositories and store it in a MongoDB database. The project also features resilient communication through the use of Circuit Breaker and Retry patterns with **Resilience4j**, and utilizes Docker and Docker Compose for containerized environments.
+The project is designed as an application based on two microservices. The architecture utilizes a message queue system (Kafka) to enable communication between services. The goal of the application is to retrieve commit data from specified Git repositories and store it in a MongoDB database. The project also features resilient communication through the use of Circuit Breaker and Retry patterns with Resilience4j, and utilizes Docker and Docker Compose for containerized environments.
 
 ### git-repository-reader-engine
 
