@@ -25,9 +25,9 @@ public class ClientController {
 
     @PostMapping("/load")
     public ResponseEntity<String> sendGitRepositoryToLoad(@Valid @RequestBody GitCredentialsRequest request) {
-        var credentials = GitCredentialsMapper.INSTANCE.mapRequest(request);
-        gitRepositoryClientFacade.sendGitRepositoryToLoad(credentials);
-        return ResponseEntity.ok("Git repository request processed successfully");
+        GitCredentialsMapper.INSTANCE.mapCredentials(request.getCredentials())
+                .forEach(gitRepositoryClientFacade::sendGitRepositoryToLoad);
+        return ResponseEntity.ok("Git credentials request was successfully handled");
     }
 
     @GetMapping("/status")

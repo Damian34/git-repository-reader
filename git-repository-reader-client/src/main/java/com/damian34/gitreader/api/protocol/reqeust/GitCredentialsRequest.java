@@ -1,17 +1,18 @@
 package com.damian34.gitreader.api.protocol.reqeust;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class GitCredentialsRequest {
-    @NotBlank(message = "URL cannot be blank")
-    private String url;
-    private String username;
-    private String password;
-    private String token;
+    @Valid
+    @NotEmpty(message = "Credentials list cannot be empty")
+    private List<GitCredentials> credentials;
 }
