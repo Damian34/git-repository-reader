@@ -1,6 +1,7 @@
 package com.damian34.gitreader.api;
 
 import com.damian34.gitreader.AbstractBaseIntegrationTest;
+import com.damian34.gitreader.api.protocol.reqeust.GitCredentials;
 import com.damian34.gitreader.api.protocol.reqeust.GitCredentialsRequest;
 import com.damian34.gitreader.api.protocol.reqeust.GitUrlRequest;
 import com.damian34.gitreader.infrastructure.db.GitRepositoryDocumentRepository;
@@ -22,6 +23,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -58,7 +61,8 @@ class ClientControllerTest extends AbstractBaseIntegrationTest {
     @Test
     void shouldSendGitCredentialsToKafkaWhenValidData() {
         // given
-        GitCredentialsRequest request = new GitCredentialsRequest(REPOSITORY_URL, null, null, null);
+        GitCredentials credentials = new GitCredentials(REPOSITORY_URL, null, null, null);
+        GitCredentialsRequest request = new GitCredentialsRequest(List.of(credentials));
 
         // when
         mockMvc.perform(post("/api/git/repository/load")
@@ -76,14 +80,27 @@ class ClientControllerTest extends AbstractBaseIntegrationTest {
 
     @SneakyThrows
     @Test
-    void shouldFailSendGitCredentialsWhenUrlBlank(){
+    void shouldFailSendGitCredentialsWhenUrlBlank() {
         // given
-        GitCredentialsRequest request = new GitCredentialsRequest(null, "username", "password", "token");
+        GitCredentials credentials = new GitCredentials(null, "username", "password", "token");
+        GitCredentialsRequest request = new GitCredentialsRequest(List.of(credentials));
 
         // when and then
         mockMvc.perform(post("/api/git/repository/load")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @SneakyThrows
+    @Test
+    void shouldFailSendGitCredentialsWhenListIsEmpty() {
+        GitCredentialsRequest request = new GitCredentialsRequest(new ArrayList<>());
+
+        // when and then
+        mockMvc.perform(post("/api/git/repository/load")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
