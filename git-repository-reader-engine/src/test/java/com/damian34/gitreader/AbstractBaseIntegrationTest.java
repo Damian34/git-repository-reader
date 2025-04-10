@@ -15,11 +15,11 @@ import org.testcontainers.utility.DockerImageName;
 @ActiveProfiles("test")
 public abstract class AbstractBaseIntegrationTest {
 
-    static final MongoDBContainer mongoContainer = new MongoDBContainer("mongo:latest")
+    static final MongoDBContainer mongoContainer = new MongoDBContainer("mongo:8.0.6")
             .withEnv("MONGO_INITDB_DATABASE", "test_db")
             .waitingFor(Wait.forListeningPort());
 
-    static final KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.4.0"))
+    static final KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.9.0"))
             .waitingFor(Wait.forListeningPort());
 
     static {

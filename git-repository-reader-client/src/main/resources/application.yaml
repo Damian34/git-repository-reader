@@ -3,10 +3,10 @@ server:
 spring:
   data:
     mongodb:
-      uri: ${MONGO_URL:mongodb://root:pass123@localhost:27017/git_repository_db?authSource=admin}
+      uri: mongodb://root:pass123@localhost:27017/git_repository_db?authSource=admin
   kafka:
     producer:
-      bootstrap-servers: ${KAFKA_URL:localhost:29092}
+      bootstrap-servers: localhost:29092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       retries: 3
