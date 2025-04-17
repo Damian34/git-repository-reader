@@ -1,6 +1,6 @@
 package com.damian34.gitreader.api;
 
-import com.damian34.gitreader.AbstractBaseIntegrationTest;
+import com.damian34.gitreader.TestContainerInitializer;
 import com.damian34.gitreader.api.protocol.reqeust.GitCredentials;
 import com.damian34.gitreader.api.protocol.reqeust.GitCredentialsRequest;
 import com.damian34.gitreader.api.protocol.reqeust.GitUrlRequest;
@@ -20,7 +20,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -33,7 +35,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
-class ClientControllerTest extends AbstractBaseIntegrationTest {
+@SpringBootTest
+@ContextConfiguration(initializers = TestContainerInitializer.class)
+class ClientControllerTest {
 
     private static final String REPOSITORY_URL = "https://github.com/Damian34/spring-security-jwt-auth";
 

@@ -1,7 +1,7 @@
 package com.damian34.gitreader.infrastructure;
 
 import com.damian34.gitreader.GitData;
-import com.damian34.gitreader.AbstractBaseIntegrationTest;
+import com.damian34.gitreader.TestContainerInitializer;
 import com.damian34.gitreader.infrastructure.service.GitHubRepositoryReader;
 import com.damian34.gitreader.model.queue.GitConnectionCredentials;
 import com.damian34.gitreader.model.repository.Branch;
@@ -9,9 +9,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
+
 import java.util.List;
 
-class GitHubRepositoryReaderTestIntegrationTest extends AbstractBaseIntegrationTest {
+@SpringBootTest
+@ContextConfiguration(initializers = TestContainerInitializer.class)
+class GitHubRepositoryReaderTestIntegrationTest {
 
     @Autowired
     private GitHubRepositoryReader gitHubRepositoryReader;

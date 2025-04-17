@@ -1,19 +1,14 @@
 package com.damian34.gitreader;
 
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-@Testcontainers
-@SpringBootTest
-@ActiveProfiles("test")
-public abstract class AbstractBaseIntegrationTest {
+public class TestContainerInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
     static final MongoDBContainer mongoContainer = new MongoDBContainer("mongo:8.0.6")
             .withEnv("MONGO_INITDB_DATABASE", "test_db")
@@ -27,10 +22,11 @@ public abstract class AbstractBaseIntegrationTest {
         kafkaContainer.start();
     }
 
-    @DynamicPropertySource
-    static void containersProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.mongodb.uri", mongoContainer::getReplicaSetUrl);
-        registry.add("spring.kafka.bootstrap-servers", kafkaContainer::getBootstrapServers);
+    @Override
+    public void initialize(ConfigurableApplicationContext applicationContext) {
+        TestPropertyValues.of(
+                "spring.data.mongodb.uri=" + mongoContainer.getReplicaSetUrl(),
+                "spring.kafka.bootstrap-servers=" + kafkaContainer.getBootstrapServers()
+        ).applyTo(applicationContext.getEnvironment());
     }
-
 }

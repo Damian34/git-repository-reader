@@ -1,7 +1,7 @@
 package com.damian34.gitreader.domain;
 
 import com.damian34.gitreader.GitData;
-import com.damian34.gitreader.AbstractBaseIntegrationTest;
+import com.damian34.gitreader.TestContainerInitializer;
 import com.damian34.gitreader.domain.service.GitRepositoryFacade;
 import com.damian34.gitreader.exception.NotFoundGitReaderException;
 import com.damian34.gitreader.infrastructure.db.GitRepositoryDocumentRepository;
@@ -14,8 +14,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
 
-class GitRepositoryFacadeTestIntegrationTest extends AbstractBaseIntegrationTest {
+@SpringBootTest
+@ContextConfiguration(initializers = TestContainerInitializer.class)
+class GitRepositoryFacadeTestIntegrationTest {
 
     @Autowired
     private GitRepositoryFacade gitRepositoryFacade;
