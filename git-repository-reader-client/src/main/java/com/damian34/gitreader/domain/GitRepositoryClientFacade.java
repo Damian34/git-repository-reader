@@ -6,6 +6,7 @@ import com.damian34.gitreader.domain.persistence.GitRepositoryPersistenceService
 import com.damian34.gitreader.domain.persistence.GitStatusPersistenceService;
 import com.damian34.gitreader.model.ProcessStatus;
 import com.damian34.gitreader.model.queue.GitConnectionCredentials;
+import com.damian34.gitreader.model.encryption.service.CredentialsEncryptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +18,12 @@ public class GitRepositoryClientFacade {
     private final CredentialsMessageSender credentialsMessageSender;
     private final GitRepositoryPersistenceService gitRepositoryPersistenceService;
     private final GitStatusPersistenceService gitStatusPersistenceService;
+    private final CredentialsEncryptionService credentialsEncryptionService;
 
     public void sendGitRepositoryToLoad(GitConnectionCredentials credentials) {
         gitRepositoryPersistenceService.cleanRepositories(credentials.url(), ProcessStatus.WAITING);
-        credentialsMessageSender.sendMessage(credentials);
+        GitConnectionCredentials encryptedCredentials = credentialsEncryptionService.encrypt(credentials);
+        credentialsMessageSender.sendMessage(encryptedCredentials);
         gitStatusPersistenceService.saveGitStatusWaiting(credentials.url());
     }
 

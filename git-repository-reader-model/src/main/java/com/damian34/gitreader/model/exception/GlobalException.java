@@ -1,4 +1,4 @@
-package com.damian34.gitreader.exception;
+package com.damian34.gitreader.model.exception;
 
 public class GlobalException extends RuntimeException {
 

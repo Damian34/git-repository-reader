@@ -16,3 +16,5 @@ spring:
 springdoc:
   api-docs-path: /api-docs
   swagger-ui-path: /swagger-ui.html
+encryption:
+  secret-key: ${ENCRYPTION_SECRET_KEY:S3cur3AndL0ngEncrypTionKey2025!!}

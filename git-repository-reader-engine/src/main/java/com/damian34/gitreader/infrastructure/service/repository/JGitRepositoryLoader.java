@@ -4,53 +4,55 @@ import com.damian34.gitreader.exception.GitRepositoryConnectionException;
 import com.damian34.gitreader.exception.GitRepositoryException;
 import com.damian34.gitreader.infrastructure.util.FileUtils;
 import com.damian34.gitreader.model.queue.GitConnectionCredentials;
+import com.damian34.gitreader.model.encryption.service.CredentialsEncryptionService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.micrometer.common.util.StringUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.UUID;
 
 @Slf4j
-@Service
+@Component
+@RequiredArgsConstructor
 public class JGitRepositoryLoader {
 
     @Value("${jgit.temp-root-folder}")
     private String tempRootFolder;
+    
+    private final CredentialsEncryptionService credentialsEncryptionService;
 
     @CircuitBreaker(name = "git-repository-loader")
     @Retry(name = "git-repository-loader")
     public JGitRepository loadRepository(GitConnectionCredentials credentials) {
         validateCredentials(credentials);
-        Path tempRepositoryDir = null;
-        try {
-            tempRepositoryDir = FileUtils.createTempDirectory(tempRootFolder, UUID.randomUUID().toString());
-            var git = cloneRepository(credentials.url(), tempRepositoryDir, createCredentialsProvider(credentials));
-            return new JGitRepository(tempRepositoryDir, git);
-        } catch (TransportException e) {
-            log.error("Failed to connect to the Git repository with credentials: {}", credentials, e);
-            FileUtils.deleteDirectory(tempRepositoryDir);
-            throw new GitRepositoryConnectionException("Failed to connect to the Git repository with credentials: " + credentials, e);
-        } catch (Exception e) {
-            log.error("An exception occurred while trying to download the Git repository.", e);
-            FileUtils.deleteDirectory(tempRepositoryDir);
-            throw new GitRepositoryException("An exception occurred while trying to download the Git repository.", e);
-        }
-    }
+        GitConnectionCredentials decryptedCredentials = credentialsEncryptionService.decrypt(credentials);
 
-    private Git cloneRepository(String url, Path tempDirectory, CredentialsProvider credentialsProvider) throws Exception {
-        return Git.cloneRepository()
-                .setURI(url)
-                .setDirectory(tempDirectory.toFile())
-                .setCredentialsProvider(credentialsProvider)
-                .call();
+        try {
+            Path tempDir = FileUtils.createTempDirectory(tempRootFolder, UUID.randomUUID().toString());
+            
+            Git git = Git.cloneRepository()
+                    .setURI(decryptedCredentials.url())
+                    .setDirectory(tempDir.toFile())
+                    .setCredentialsProvider(createCredentialsProvider(decryptedCredentials))
+                    .call();
+            
+            return new JGitRepository(tempDir, git);
+        } catch (TransportException e) {
+            throw new GitRepositoryConnectionException("Failed to connect to Git repository: " + e.getMessage(), e);
+        } catch (GitAPIException | IOException e) {
+            throw new GitRepositoryException("An exception occurred while loading the repository: " + e.getMessage(), e);
+        }
     }
 
     private void validateCredentials(GitConnectionCredentials credentials) {
@@ -61,13 +63,18 @@ public class JGitRepositoryLoader {
     }
 
     private CredentialsProvider createCredentialsProvider(GitConnectionCredentials credentials) {
-        if (StringUtils.isNotBlank(credentials.token())) {
-            return new UsernamePasswordCredentialsProvider("git", credentials.token());
+        if (credentials.username() == null && credentials.password() == null && credentials.token() == null) {
+            return null;
         }
-        if (StringUtils.isNotBlank(credentials.username()) && StringUtils.isNotBlank(credentials.password())) {
-            return new UsernamePasswordCredentialsProvider(credentials.username(), credentials.password());
+        
+        if (credentials.token() != null) {
+            return new UsernamePasswordCredentialsProvider("token", credentials.token());
         }
-        return CredentialsProvider.getDefault();
+        
+        return new UsernamePasswordCredentialsProvider(
+                credentials.username() != null ? credentials.username() : "",
+                credentials.password() != null ? credentials.password() : ""
+        );
     }
 
 }

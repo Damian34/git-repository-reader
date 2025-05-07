@@ -30,3 +30,5 @@ resilience4j:
         waitDuration: 30s
 jgit:
   temp-root-folder: ${TEMP_ROOT_FOLDER:tmp_jgit_repositories}
+encryption:
+  secret-key: ${ENCRYPTION_SECRET_KEY:S3cur3AndL0ngEncrypTionKey2025!!}

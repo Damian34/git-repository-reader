@@ -1,5 +1,7 @@
 package com.damian34.gitreader.exception;
 
+import com.damian34.gitreader.model.exception.GlobalException;
+
 import java.text.MessageFormat;
 
 public class NotFoundGitReaderException extends GlobalException {

@@ -2,8 +2,8 @@ package com.damian34.gitreader.domain.service;
 
 import com.damian34.gitreader.domain.service.presistence.GitRepositoryPersistenceService;
 import com.damian34.gitreader.domain.service.presistence.GitStatusPersistenceService;
-import com.damian34.gitreader.exception.GlobalException;
 import com.damian34.gitreader.exception.NotFoundGitReaderException;
+import com.damian34.gitreader.model.exception.GlobalException;
 import com.damian34.gitreader.model.queue.GitConnectionCredentials;
 import com.damian34.gitreader.model.repository.Branch;
 import lombok.RequiredArgsConstructor;
@@ -57,22 +57,3 @@ public class GitRepositoryFacade {
     }
 
 }
-
-
-    /*private Optional<List<Branch>> processFetchBranches(GitConnectionCredentials credentials,  GitRepositoryReader gitReader, String gitCloneUrl) {
-        try {
-            var updatedCredentials = credentials.updateUrl(gitCloneUrl);
-            List<Branch> branches = gitReader.fetchBranches(updatedCredentials);
-            return Optional.of(branches);
-        } catch (Exception e) {
-            onFail(credentials.url(), e);
-            return Optional.empty();
-        }
-    }*/
-            /*var branchesOpt = processFetchBranches(credentials, gitReader, gitCloneUrl);
-            if(branchesOpt.isPresent()) {
-                List<Branch> branches = branchesOpt.get();
-                clean(credentials.url(), gitCloneUrl);
-                gitRepositoryPersistenceService.saveGitBranches(credentials.url(), gitCloneUrl, branches);
-                gitStatusPersistenceService.saveGitStatusCompleted(credentials.url(), gitCloneUrl);
-            }*/
