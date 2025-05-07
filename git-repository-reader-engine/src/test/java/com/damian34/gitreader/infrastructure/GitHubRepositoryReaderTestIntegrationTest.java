@@ -22,7 +22,7 @@ class GitHubRepositoryReaderTestIntegrationTest {
     private GitHubRepositoryReader gitHubRepositoryReader;
 
     @ParameterizedTest
-    @ValueSource(strings = { GitData.GITHUB_URL_1, GitData.GITHUB_URL_2 })
+    @ValueSource(strings = { GitData.GITHUB_SECURITY_JWT_URL, GitData.GITHUB_SECURITY_JWT_URL_DOMAIN})
     void shouldFindRepositoryBranchesTest(String url) {
         // given
         var gitUrl = gitHubRepositoryReader.buildGitCloneUrl(url);
