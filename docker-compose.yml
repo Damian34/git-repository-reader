@@ -23,12 +23,19 @@ services:
       - "2181:2181"
     networks:
       - kafka-network
+    healthcheck:
+      test: ["CMD", "sh", "-c", "echo ruok | nc localhost 2181 | grep imok"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
     deploy:
       resources:
         limits:
           memory: 256m
         reservations:
           memory: 128m
+
   kafka:
     image: confluentinc/cp-kafka:7.9.0
     container_name: kafka
@@ -50,17 +57,18 @@ services:
     networks:
       - kafka-network
     healthcheck:
-      test: [ "CMD", "kafka-topics", "--zookeeper", "zookeeper:2181", "--list" ]
-      interval: 1m
+      test: ["CMD", "kafka-topics", "--zookeeper", "zookeeper:2181", "--list"]
+      interval: 30s
+      timeout: 10s
       retries: 5
-      start_period: 30s
-      timeout: 20s
+      start_period: 20s
     deploy:
       resources:
         limits:
           memory: 256m
         reservations:
           memory: 128m
+
   kafka-ui:
     image: provectuslabs/kafka-ui:v0.7.2
     container_name: kafka-ui
@@ -75,12 +83,19 @@ services:
       - kafka
     networks:
       - kafka-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
     deploy:
       resources:
         limits:
           memory: 256m
         reservations:
           memory: 128m
+
   mongo-db:
     image: mongo:8.0.6
     container_name: mongo-db
@@ -96,12 +111,19 @@ services:
       - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
     networks:
       - api-network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--username", "${MONGO_ROOT_USERNAME}", "--password", "${MONGO_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
     deploy:
       resources:
         limits:
           memory: 256m
         reservations:
           memory: 128m
+
   git-repository-reader-engine:
     build: ./git-repository-reader-engine
     container_name: engine
@@ -123,12 +145,19 @@ services:
     networks:
       - api-network
       - kafka-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
     deploy:
       resources:
         limits:
           memory: 512m
         reservations:
           memory: 256m
+
   git-repository-reader-client:
     build: ./git-repository-reader-client
     container_name: client
@@ -146,6 +175,12 @@ services:
     networks:
       - api-network
       - kafka-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
     deploy:
       resources:
         limits:

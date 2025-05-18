@@ -1,5 +1,6 @@
 server:
   port: 8081
+
 spring:
   data:
     mongodb:
@@ -13,6 +14,7 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     topics:
       git-credentials: ${KAFKA_GIT_CREDENTIALS_TOPIC:git-credentials}
+
 resilience4j:
   circuitbreaker:
     instances:
@@ -28,7 +30,17 @@ resilience4j:
       git-repository-loader:
         maxAttempts: 5
         waitDuration: 30s
+
 jgit:
   temp-root-folder: ${TEMP_ROOT_FOLDER:tmp_jgit_repositories}
 encryption:
   secret-key: ${ENCRYPTION_SECRET_KEY:S3cur3AndL0ngEncrypTionKey2025!!}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
