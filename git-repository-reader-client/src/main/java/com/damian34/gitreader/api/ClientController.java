@@ -5,14 +5,15 @@ import com.damian34.gitreader.api.protocol.reqeust.GitCredentialsRequest;
 import com.damian34.gitreader.api.protocol.reqeust.GitUrlRequest;
 import com.damian34.gitreader.domain.GitRepositoryClientFacade;
 import com.damian34.gitreader.domain.dto.GitRepositoryDto;
-import com.damian34.gitreader.domain.dto.GitStatusDto;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -28,12 +29,6 @@ public class ClientController {
         GitCredentialsMapper.INSTANCE.mapCredentials(request.getCredentials())
                 .forEach(gitRepositoryClientFacade::sendGitRepositoryToLoad);
         return ResponseEntity.ok("Git credentials request was successfully handled");
-    }
-
-    @GetMapping("/status")
-    public ResponseEntity<GitStatusDto> getStatus(@Valid @RequestBody GitUrlRequest request) {
-        GitStatusDto status = gitRepositoryClientFacade.findGitStatus(request.getUrl());
-        return ResponseEntity.ok(status);
     }
 
     @GetMapping

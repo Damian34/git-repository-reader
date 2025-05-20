@@ -3,8 +3,7 @@ package com.damian34.gitreader.domain.service;
 
 import com.damian34.gitreader.model.queue.GitConnectionCredentials;
 import com.damian34.gitreader.model.repository.Branch;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 public interface GitRepositoryReader {
 
@@ -12,5 +11,5 @@ public interface GitRepositoryReader {
 
     String buildGitCloneUrl(String url);
 
-    List<Branch> fetchBranches(GitConnectionCredentials credentials);
+    Flux<Branch> fetchBranches(GitConnectionCredentials credentials);
 }

@@ -13,12 +13,14 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,21 +28,29 @@ public abstract class JGitRepositoryReader implements GitRepositoryReader {
     protected final JGitRepositoryLoader jGitRepositoryLoader;
 
     @Override
-    public List<Branch> fetchBranches(GitConnectionCredentials credentials) {
-        try (JGitRepository gitRepository = jGitRepositoryLoader.loadRepository(credentials)) {
-            List<Ref> branches = getGitBranches(gitRepository);
-            return branches.stream().map(branch -> {
-                var commits = getGitCommits(gitRepository.getTempRepositoryDir().toString(), branch.getName());
-                return Branch.builder()
-                        .id(branch.getObjectId().toString())
-                        .name(branch.getName())
-                        .commits(commits)
-                        .build();
-            }).collect(Collectors.toList());
-        }
+    public Flux<Branch> fetchBranches(GitConnectionCredentials credentials) {
+        return jGitRepositoryLoader.loadRepository(credentials)
+                .flatMapMany(gitRepository ->
+                    Mono.fromCallable(() -> getGitBranches(gitRepository))
+                            .flatMapMany(Flux::fromIterable)
+                            .flatMap(branch ->
+                                    getGitCommitsAndMap(gitRepository.getTempRepositoryDir().toString(), branch)
+                            )
+                            .subscribeOn(Schedulers.boundedElastic())
+                            .doFinally(signalType -> gitRepository.close())
+                );
     }
 
     protected abstract String getOriginPath();
+
+    private Mono<Branch> getGitCommitsAndMap(String repoPath, Ref branch) {
+        return getGitCommitsReactive(repoPath, branch.getName())
+                .map(commits -> Branch.builder()
+                        .id(branch.getObjectId().toString())
+                        .name(branch.getName())
+                        .commits(commits)
+                        .build());
+    }
 
     private List<Ref> getGitBranches(JGitRepository gitRepository) {
         Git git = gitRepository.getGit();
@@ -55,6 +65,11 @@ public abstract class JGitRepositoryReader implements GitRepositoryReader {
             log.error("Error occurred while fetching branches for Git repository.", e);
             throw new GitRepositoryException("Error occurred while fetching branches for Git repository.", e);
         }
+    }
+
+    private Mono<List<Commit>> getGitCommitsReactive(String repoPath, String branch) {
+        return Mono.fromCallable(() -> getGitCommits(repoPath, branch))
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
     private List<Commit> getGitCommits(String repoPath, String branch) {
@@ -77,7 +92,7 @@ public abstract class JGitRepositoryReader implements GitRepositoryReader {
                                 .date(parts[3])
                                 .build()
                         )
-                        .collect(Collectors.toList());
+                        .toList();
                 process.waitFor();
                 return commits;
             } finally {

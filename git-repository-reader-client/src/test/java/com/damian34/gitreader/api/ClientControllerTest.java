@@ -5,11 +5,9 @@ import com.damian34.gitreader.api.protocol.reqeust.GitCredentials;
 import com.damian34.gitreader.api.protocol.reqeust.GitCredentialsRequest;
 import com.damian34.gitreader.api.protocol.reqeust.GitUrlRequest;
 import com.damian34.gitreader.infrastructure.db.GitRepositoryDocumentRepository;
-import com.damian34.gitreader.infrastructure.db.GitStatusRepository;
 import com.damian34.gitreader.infrastructure.service.kafka.sender.KafkaCredentialsMessageSender;
 import com.damian34.gitreader.model.ProcessStatus;
 import com.damian34.gitreader.model.document.GitRepositoryDocument;
-import com.damian34.gitreader.model.document.GitStatusDocument;
 import com.damian34.gitreader.model.repository.Branch;
 import com.damian34.gitreader.model.repository.Commit;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,9 +46,6 @@ class ClientControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private GitStatusRepository gitStatusRepository;
-
-    @Autowired
     private GitRepositoryDocumentRepository gitRepositoryDocumentRepository;
 
     @MockitoBean
@@ -58,7 +53,7 @@ class ClientControllerTest {
 
     @BeforeEach
     void setUp() {
-        gitStatusRepository.deleteAll();
+        gitRepositoryDocumentRepository.deleteAll();
     }
 
     @SneakyThrows
@@ -76,10 +71,10 @@ class ClientControllerTest {
 
         // then
         Mockito.verify(kafkaCredentialsMessageSender, Mockito.times(1)).sendMessage(Mockito.any());
-        var statusDocument = gitStatusRepository.findAll();
-        Assertions.assertFalse(statusDocument.isEmpty(), "GitStatusDocument should exists.");
-        var status = statusDocument.getFirst();
-        Assertions.assertEquals(ProcessStatus.WAITING, status.getStatus(), "GitStatusDocument should be WAITING");
+
+        var repositoryDocuments = gitRepositoryDocumentRepository.findAll();
+        var document = repositoryDocuments.getFirst();
+        Assertions.assertEquals(ProcessStatus.WAITING, document.getStatus(), "GitRepositoryDocument Status should be WAITING");
     }
 
     @SneakyThrows
@@ -110,39 +105,9 @@ class ClientControllerTest {
 
     @SneakyThrows
     @Test
-    void shouldGetGitStatusWhenExists() {
-        // given
-        GitUrlRequest request = new GitUrlRequest(REPOSITORY_URL);
-        GitStatusDocument statusInDb = createStatus(request.getUrl());
-
-        // when and then
-        mockMvc.perform(get("/api/git/repository/status")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.url").value(statusInDb.getUrl()))
-                .andExpect(jsonPath("$.status").value(statusInDb.getStatus().toString()));
-    }
-
-    @SneakyThrows
-    @Test
-    void shouldFailGetGitStatusWhenNotExists() {
-        // given
-        GitUrlRequest request = new GitUrlRequest(REPOSITORY_URL);
-
-        // when and then
-        mockMvc.perform(get("/api/git/repository/status")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isNotFound());
-    }
-
-    @SneakyThrows
-    @Test
     void shouldGetGitRepositoryWhenExists() {
         // given
         GitUrlRequest request = new GitUrlRequest(REPOSITORY_URL);
-        GitStatusDocument statusInDb = createStatus(request.getUrl());
         GitRepositoryDocument repositoryInDb = createRepository(request.getUrl());
 
         // when and then
@@ -151,7 +116,7 @@ class ClientControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.url").value(repositoryInDb.getUrl()))
-                .andExpect(jsonPath("$.status").value(statusInDb.getStatus().toString()));
+                .andExpect(jsonPath("$.status").value(repositoryInDb.getStatus().toString()));
     }
 
     @SneakyThrows
@@ -167,17 +132,12 @@ class ClientControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-
     @SneakyThrows
     @Test
     void shouldGetGitRepositoriesEmptyWhenNotExistsAny() {
-        // given
-        GitUrlRequest request = new GitUrlRequest(REPOSITORY_URL);
-
         // when and then
         mockMvc.perform(get("/api/git/repository/all")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
@@ -187,26 +147,18 @@ class ClientControllerTest {
     @Test
     void shouldGetGitRepositoriesWhenExistsAny() {
         // given
-        GitUrlRequest request = new GitUrlRequest(REPOSITORY_URL);
-        createStatus(request.getUrl());
-        createRepository(request.getUrl());
+        createRepository(REPOSITORY_URL);
 
         // when and then
         mockMvc.perform(get("/api/git/repository/all")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isNotEmpty());
     }
 
-    private GitStatusDocument createStatus(String url) {
-        GitStatusDocument statusInDb = new GitStatusDocument(url, null, ProcessStatus.FAILED, null);
-        return gitStatusRepository.save(statusInDb);
-    }
-
     private GitRepositoryDocument createRepository(String url) {
-        GitRepositoryDocument repositoryInDb = new GitRepositoryDocument(url, null,
+        GitRepositoryDocument repositoryInDb = new GitRepositoryDocument(url, null, ProcessStatus.FAILED, null,
                 List.of(new Branch("branchId", "name",
                         List.of(new Commit("commitId", "name", "author", "date")))));
         return gitRepositoryDocumentRepository.save(repositoryInDb);

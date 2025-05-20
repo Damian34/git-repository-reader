@@ -2,11 +2,14 @@ package com.damian34.gitreader.infrastructure.service.persistence;
 
 import com.damian34.gitreader.domain.service.presistence.GitRepositoryPersistenceService;
 import com.damian34.gitreader.infrastructure.db.GitRepositoryDocumentRepository;
+import com.damian34.gitreader.model.ExceptionDetails;
+import com.damian34.gitreader.model.ProcessStatus;
 import com.damian34.gitreader.model.document.GitRepositoryDocument;
 import com.damian34.gitreader.model.repository.Branch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -17,18 +20,26 @@ public class GitRepositoryPersistenceServiceImpl implements GitRepositoryPersist
     private final GitRepositoryDocumentRepository gitRepositoryDocumentRepository;
 
     @Override
-    public void cleanGitRepository(String url, String cloneUrl) {
+    public Mono<Void> cleanGitRepository(String url, String cloneUrl) {
         if(cloneUrl != null) {
-            gitRepositoryDocumentRepository.deleteByCloneUrl(cloneUrl);
+            return gitRepositoryDocumentRepository.deleteByCloneUrl(cloneUrl);
         } else {
-            gitRepositoryDocumentRepository.deleteById(url);
+            return gitRepositoryDocumentRepository.deleteById(url);
         }
     }
 
     @Override
-    public void saveGitBranches(String url, String cloneUrl, List<Branch> branches) {
-        var document = new GitRepositoryDocument(url, cloneUrl, branches);
-        log.info("Saving GitRepositoryDocument with url: {}", document.getUrl());
-        gitRepositoryDocumentRepository.save(document);
+    public Mono<Void> saveGitBranches(String url, String cloneUrl, List<Branch> branches) {
+        var document = new GitRepositoryDocument(url, cloneUrl, ProcessStatus.COMPLETED, null, branches);
+        log.info("Saving Completed GitRepositoryDocument with url: {}", document.getCloneUrl());
+        return gitRepositoryDocumentRepository.save(document).then();
+    }
+
+    @Override
+    public Mono<Void> saveGitFail(String url, Throwable e) {
+        var error = new ExceptionDetails(e.getClass().getSimpleName(), e.getMessage());
+        var document = new GitRepositoryDocument(url, null, ProcessStatus.FAILED, error, null);
+        log.info("Saving Failed GitRepositoryDocument with url: {}", document.getUrl());
+        return gitRepositoryDocumentRepository.save(document).then();
     }
 }

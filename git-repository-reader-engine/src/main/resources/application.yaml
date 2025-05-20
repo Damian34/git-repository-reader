@@ -6,14 +6,22 @@ spring:
     mongodb:
       uri: mongodb://root:pass123@localhost:27017/git_repository_db?authSource=admin
   kafka:
+    bootstrap-servers: localhost:29092
     consumer:
-      bootstrap-servers: localhost:29092
       group-id: git-app-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     topics:
       git-credentials: ${KAFKA_GIT_CREDENTIALS_TOPIC:git-credentials}
+    reactor:
+      poll-timeout: 1000
+  reactor:
+    schedulers:
+      bounded-elastic:
+        thread-cap: 3
+        queue-size: 50
+        ttl: 30s
 
 resilience4j:
   circuitbreaker:
@@ -30,6 +38,8 @@ resilience4j:
       git-repository-loader:
         maxAttempts: 5
         waitDuration: 30s
+        retryExceptions:
+          - com.damian34.gitreader.exception.GitRepositoryConnectionException
 
 jgit:
   temp-root-folder: ${TEMP_ROOT_FOLDER:tmp_jgit_repositories}

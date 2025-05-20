@@ -4,10 +4,8 @@ import com.damian34.gitreader.TestContainerInitializer;
 import com.damian34.gitreader.domain.dto.GitRepositoryDto;
 import com.damian34.gitreader.exception.NotFoundGitRepositoryException;
 import com.damian34.gitreader.infrastructure.db.GitRepositoryDocumentRepository;
-import com.damian34.gitreader.infrastructure.db.GitStatusRepository;
 import com.damian34.gitreader.model.ProcessStatus;
 import com.damian34.gitreader.model.document.GitRepositoryDocument;
-import com.damian34.gitreader.model.document.GitStatusDocument;
 import com.damian34.gitreader.model.repository.Branch;
 import com.damian34.gitreader.model.repository.Commit;
 import org.junit.jupiter.api.Assertions;
@@ -34,28 +32,21 @@ class GitRepositoryPersistenceServiceImplTest {
     @MockitoBean
     private GitRepositoryDocumentRepository gitRepositoryDocumentRepository;
 
-    @MockitoBean
-    private GitStatusRepository gitStatusRepository;
-
     @Autowired
     private GitRepositoryPersistenceServiceImpl gitRepositoryPersistenceService;
 
-    private GitStatusDocument sampleStatusDocument;
     private GitRepositoryDocument sampleRepositoryDocument;
 
     @BeforeEach
     void setUp() {
-        sampleStatusDocument = new GitStatusDocument(TEST_URL, null, ProcessStatus.COMPLETED, null);
-        
         Branch branch = new Branch("branchId", "main", 
                 List.of(new Commit("commitId", "Initial commit", "Author", "2023-01-01")));
-        sampleRepositoryDocument = new GitRepositoryDocument(TEST_URL, null, List.of(branch));
+        sampleRepositoryDocument = new GitRepositoryDocument(TEST_URL, null, ProcessStatus.COMPLETED, null, List.of(branch));
     }
 
     @Test
     void shouldReturnDtoWhenRepositoryExists() {
         // given
-        Mockito.when(gitStatusRepository.findById(TEST_URL)).thenReturn(Optional.of(sampleStatusDocument));
         Mockito.when(gitRepositoryDocumentRepository.findById(TEST_URL)).thenReturn(Optional.of(sampleRepositoryDocument));
 
         // when
@@ -68,9 +59,9 @@ class GitRepositoryPersistenceServiceImplTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenStatusNotFound() {
+    void shouldThrowExceptionWhenRepositoryNotFound() {
         // given
-        Mockito.when(gitStatusRepository.findById(TEST_URL)).thenReturn(Optional.empty());
+        Mockito.when(gitRepositoryDocumentRepository.findById(TEST_URL)).thenReturn(Optional.empty());
 
         // when & then
         Assertions.assertThrows(NotFoundGitRepositoryException.class, 
@@ -80,7 +71,6 @@ class GitRepositoryPersistenceServiceImplTest {
     @Test
     void shouldReturnRepositoriesWhenDataExists() {
         // given
-        Mockito.when(gitStatusRepository.findAll()).thenReturn(List.of(sampleStatusDocument));
         Mockito.when(gitRepositoryDocumentRepository.findAll()).thenReturn(List.of(sampleRepositoryDocument));
 
         // when
@@ -94,7 +84,7 @@ class GitRepositoryPersistenceServiceImplTest {
     @Test
     void shouldReturnEmptyListWhenNoDataExists() {
         // given
-        Mockito.when(gitStatusRepository.findAll()).thenReturn(Collections.emptyList());
+        Mockito.when(gitRepositoryDocumentRepository.findAll()).thenReturn(Collections.emptyList());
 
         // when
         List<GitRepositoryDto> results = gitRepositoryPersistenceService.findAllGitRepositories();
@@ -105,41 +95,15 @@ class GitRepositoryPersistenceServiceImplTest {
 
     @ParameterizedTest
     @EnumSource(value = ProcessStatus.class, names = {"COMPLETED", "FAILED"})
-    void shouldDeleteRepositoryWhenStatusNotMatching(ProcessStatus status) {
+    void shouldCallDeleteByUrlAndNotStatusWhenStatusNotMatching(ProcessStatus status) {
         // given
-        sampleStatusDocument.setStatus(status);
-        Mockito.when(gitStatusRepository.findById(TEST_URL)).thenReturn(Optional.of(sampleStatusDocument));
+        sampleRepositoryDocument.setStatus(status);
+        Mockito.when(gitRepositoryDocumentRepository.findById(TEST_URL)).thenReturn(Optional.of(sampleRepositoryDocument));
         
         // when
         gitRepositoryPersistenceService.cleanRepositories(TEST_URL, ProcessStatus.WAITING);
 
         // then
-        Mockito.verify(gitRepositoryDocumentRepository).deleteById(TEST_URL);
-        Mockito.verify(gitStatusRepository).deleteById(TEST_URL);
-    }
-
-    @Test
-    void shouldNotDeleteRepositoryWhenStatusMatching() {
-        // given
-        sampleStatusDocument.setStatus(ProcessStatus.WAITING);
-        Mockito.when(gitStatusRepository.findById(TEST_URL)).thenReturn(Optional.of(sampleStatusDocument));
-        
-        // when
-        gitRepositoryPersistenceService.cleanRepositories(TEST_URL, ProcessStatus.WAITING);
-
-        // then
-        Mockito.verify(gitRepositoryDocumentRepository, Mockito.never()).deleteById(TEST_URL);
-    }
-
-    @Test
-    void shouldNotDeleteRepositoryWhenStatusNotFound() {
-        // given
-        Mockito.when(gitStatusRepository.findById(TEST_URL)).thenReturn(Optional.empty());
-        
-        // when
-        gitRepositoryPersistenceService.cleanRepositories(TEST_URL, ProcessStatus.WAITING);
-
-        // then
-        Mockito.verify(gitRepositoryDocumentRepository, Mockito.never()).deleteById(TEST_URL);
+        Mockito.verify(gitRepositoryDocumentRepository).deleteByUrlAndNotStatus(TEST_URL, ProcessStatus.WAITING);
     }
 } 

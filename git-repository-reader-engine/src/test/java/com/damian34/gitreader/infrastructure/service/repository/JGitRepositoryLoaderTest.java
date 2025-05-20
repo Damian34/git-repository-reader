@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
+import reactor.test.StepVerifier;
 
 @SpringBootTest
 @ContextConfiguration(initializers = TestContainerInitializer.class)
@@ -32,14 +33,14 @@ class JGitRepositoryLoaderTest {
         );
 
         // when & then
-        JGitRepository repository = jGitRepositoryLoader.loadRepository(credentials);
+        JGitRepository repository = jGitRepositoryLoader.loadRepository(credentials).block();
         Assertions.assertNotNull(repository);
         Assertions.assertNotNull(repository.getGit());
         Assertions.assertNotNull(repository.getTempRepositoryDir());
     }
 
     @Test
-    void shouldThrowExceptionWhenNullUrl() {
+    void shouldThrowExceptionWhenInvalidUrl() {
         // given
         GitConnectionCredentials credentials = new GitConnectionCredentials(
                 null,
@@ -49,8 +50,9 @@ class JGitRepositoryLoaderTest {
         );
 
         // when & then
-        Assertions.assertThrows(GitRepositoryException.class, 
-                () -> jGitRepositoryLoader.loadRepository(credentials));
+        StepVerifier.create(jGitRepositoryLoader.loadRepository(credentials))
+                .expectError(GitRepositoryException.class)
+                .verify();
     }
 
     @ParameterizedTest
@@ -65,7 +67,8 @@ class JGitRepositoryLoaderTest {
         );
 
         // when & then
-        Assertions.assertThrows(GitRepositoryException.class, 
-                () -> jGitRepositoryLoader.loadRepository(credentials));
+        StepVerifier.create(jGitRepositoryLoader.loadRepository(credentials))
+                .expectError(GitRepositoryException.class)
+                .verify();
     }
 } 

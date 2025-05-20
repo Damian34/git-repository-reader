@@ -26,10 +26,12 @@ class GitHubRepositoryReaderTestIntegrationTest {
     void shouldFindRepositoryBranchesTest(String url) {
         // given
         var gitUrl = gitHubRepositoryReader.buildGitCloneUrl(url);
-        var credentials = new GitConnectionCredentials(gitUrl,null,null,null);
+        var credentials = new GitConnectionCredentials(gitUrl, null, null, null);
 
         // when
-        List<Branch> branches = gitHubRepositoryReader.fetchBranches(credentials);
+        List<Branch> branches = gitHubRepositoryReader.fetchBranches(credentials)
+                .collectList()
+                .block();
 
         // then
         Assertions.assertFalse(branches.isEmpty(), "Branches should not be empty.");

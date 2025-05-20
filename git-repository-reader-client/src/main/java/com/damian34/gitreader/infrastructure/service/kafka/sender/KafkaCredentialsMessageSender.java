@@ -28,7 +28,7 @@ public class KafkaCredentialsMessageSender implements CredentialsMessageSender {
         kafkaTemplate.send(topic, credentials.url(), data)
                 .whenComplete((result, e) -> {
                     if (e != null) {
-                        log.error("Failed to send message to Kafka with url: " + credentials.url(), e);
+                        log.error("Failed to send message to Kafka with url: {}", credentials.url(), e);
                     } else {
                         log.info("Message sent successfully to Kafka with url: {}", credentials.url());
                     }

@@ -10,5 +10,7 @@ public interface GitRepositoryPersistenceService {
 
     List<GitRepositoryDto> findAllGitRepositories();
 
+    void saveGitRepositoryWaiting(String url);
+
     void cleanRepositories(String url, ProcessStatus skipStatus);
 }

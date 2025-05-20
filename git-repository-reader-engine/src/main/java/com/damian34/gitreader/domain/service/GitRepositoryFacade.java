@@ -1,14 +1,12 @@
 package com.damian34.gitreader.domain.service;
 
 import com.damian34.gitreader.domain.service.presistence.GitRepositoryPersistenceService;
-import com.damian34.gitreader.domain.service.presistence.GitStatusPersistenceService;
 import com.damian34.gitreader.exception.NotFoundGitReaderException;
-import com.damian34.gitreader.model.exception.GlobalException;
 import com.damian34.gitreader.model.queue.GitConnectionCredentials;
-import com.damian34.gitreader.model.repository.Branch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -18,35 +16,40 @@ import java.util.List;
 public class GitRepositoryFacade {
     private final List<GitRepositoryReader> gitRepositoryReaders;
     private final GitRepositoryPersistenceService gitRepositoryPersistenceService;
-    private final GitStatusPersistenceService gitStatusPersistenceService;
     private final GitRepositoryValidator gitRepositoryValidator;
 
-    public void processRepositoryData(GitConnectionCredentials credentials) {
-        try{
-            gitRepositoryValidator.validateCredentials(credentials);
-            var gitReader = findReader(credentials.url());
-            var gitCloneUrl = gitReader.buildGitCloneUrl(credentials.url());
-            var updatedCredentials = credentials.updateUrl(gitCloneUrl);
-            List<Branch> branches = gitReader.fetchBranches(updatedCredentials);
-            clean(credentials.url(), gitCloneUrl);
-            gitRepositoryPersistenceService.saveGitBranches(credentials.url(), gitCloneUrl, branches);
-            gitStatusPersistenceService.saveGitStatusCompleted(credentials.url(), gitCloneUrl);
-        } catch (GlobalException e) {
-            onFail(credentials.url(), e);
-        } catch(Exception e) {
-            log.error("Unexpected error occurred for git repository URL {}: ", credentials.url(), e);
-            onFail(credentials.url(), e);
-        }
+    public Mono<Void> processRepositoryData(GitConnectionCredentials credentials) {
+        return Mono.fromCallable(() -> {
+                gitRepositoryValidator.validateCredentials(credentials);
+                return findReader(credentials.url());
+            })
+            .flatMap(gitReader -> processAndSave(credentials, gitReader))
+            .onErrorResume(e -> handleError(credentials.url(), null, e));
     }
 
-    private void onFail(String url, Exception e) {
-        clean(url, null);
-        gitStatusPersistenceService.saveGitStatusFailed(url, e);
+    private Mono<Void> processAndSave(GitConnectionCredentials credentials, GitRepositoryReader reader) {
+        String url = credentials.url();
+        String gitCloneUrl = reader.buildGitCloneUrl(url);
+        GitConnectionCredentials updatedCredentials = credentials.updateUrl(gitCloneUrl);
+        
+        return reader.fetchBranches(updatedCredentials)
+                .collectList()
+                .flatMap(branches ->
+                        cleanRepositories(url, gitCloneUrl)
+                                .then(gitRepositoryPersistenceService.saveGitBranches(url, gitCloneUrl, branches))
+                )
+                .onErrorResume(e -> handleError(url, gitCloneUrl, e))
+                .then();
     }
 
-    private void clean(String url, String cloneUrl) {
-        gitRepositoryPersistenceService.cleanGitRepository(url, cloneUrl);
-        gitStatusPersistenceService.cleanGitStatus(url, cloneUrl);
+    private Mono<Void> handleError(String url, String cloneUrl, Throwable e) {
+        log.error("Error processing repository data for URL {}: {}", url, e.getMessage(), e);
+        return cleanRepositories(url, cloneUrl)
+            .then(gitRepositoryPersistenceService.saveGitFail(url, e));
+    }
+
+    private Mono<Void> cleanRepositories(String url, String cloneUrl) {
+        return gitRepositoryPersistenceService.cleanGitRepository(url, cloneUrl);
     }
 
     private GitRepositoryReader findReader(String url) {
@@ -55,5 +58,4 @@ public class GitRepositoryFacade {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundGitReaderException(url));
     }
-
 }

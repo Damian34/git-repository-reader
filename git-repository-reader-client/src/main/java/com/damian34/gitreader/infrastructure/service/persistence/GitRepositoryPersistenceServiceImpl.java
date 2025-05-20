@@ -4,55 +4,45 @@ import com.damian34.gitreader.domain.dto.GitRepositoryDto;
 import com.damian34.gitreader.domain.persistence.GitRepositoryPersistenceService;
 import com.damian34.gitreader.exception.NotFoundGitRepositoryException;
 import com.damian34.gitreader.infrastructure.db.GitRepositoryDocumentRepository;
-import com.damian34.gitreader.infrastructure.db.GitStatusRepository;
 import com.damian34.gitreader.infrastructure.mapper.GitRepositoryMapper;
 import com.damian34.gitreader.model.ProcessStatus;
 import com.damian34.gitreader.model.document.GitRepositoryDocument;
-import com.damian34.gitreader.model.document.GitStatusDocument;
-import com.damian34.gitreader.model.repository.Branch;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GitRepositoryPersistenceServiceImpl implements GitRepositoryPersistenceService {
     private final GitRepositoryDocumentRepository gitRepositoryDocumentRepository;
-    private final GitStatusRepository gitStatusRepository;
 
     @Override
     public GitRepositoryDto findGitRepository(String url) {
-        GitStatusDocument status = gitStatusRepository.findById(url).orElseThrow(() -> new NotFoundGitRepositoryException(url));
-        var repository = gitRepositoryDocumentRepository.findById(url);
-        List<Branch> branches = repository.map(GitRepositoryDocument::getBranches).orElse(null);
-        return GitRepositoryMapper.INSTANCE.documentToDto(status, branches);
+        var repository = gitRepositoryDocumentRepository.findById(url)
+                .orElseThrow(() -> new NotFoundGitRepositoryException(url));
+        return GitRepositoryMapper.INSTANCE.documentToDto(repository);
     }
 
     @Override
     public List<GitRepositoryDto> findAllGitRepositories() {
-        List<GitStatusDocument> statuses = gitStatusRepository.findAll();
         List<GitRepositoryDocument> repositories = gitRepositoryDocumentRepository.findAll();
-        Map<String, GitRepositoryDocument> repositoriesMap = repositories.stream()
-                .collect(Collectors.toMap(GitRepositoryDocument::getUrl, Function.identity()));
-        return statuses.stream()
-                .map(status -> {
-                    var repository = repositoriesMap.get(status.getUrl());
-                    return GitRepositoryMapper.INSTANCE.documentToDto(status, repository.getBranches());
-                }).toList();
+        return GitRepositoryMapper.INSTANCE.toDtoList(repositories);
+    }
+
+    @Override
+    public void saveGitRepositoryWaiting(String url) {
+        var document = gitRepositoryDocumentRepository.findById(url)
+                .orElseGet(() -> new GitRepositoryDocument(url, null, null, null, null));
+        document.setStatus(ProcessStatus.WAITING);
+        log.info("Saving Waiting GitRepositoryDocument: {}", document);
+        gitRepositoryDocumentRepository.save(document);
     }
 
     @Override
     public void cleanRepositories(String url, ProcessStatus skipStatus) {
-        gitStatusRepository.findById(url)
-                .filter(it -> !Objects.equals(it.getStatus(), skipStatus))
-                .ifPresent(status -> {
-                    gitRepositoryDocumentRepository.deleteById(url);
-                    gitStatusRepository.deleteById(url);
-                });
+        gitRepositoryDocumentRepository.deleteByUrlAndNotStatus(url, skipStatus);
     }
 }

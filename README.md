@@ -4,11 +4,14 @@ The project is designed as an application based on two microservices. The archit
 
 ### git-repository-reader-engine
 
-This service retrieves access data from Kafka, connects to a Git repository, retrieves commits, and stores them in MongoDB. It uses the JGit library for interacting with Git repositories and MongoDB for data storage.
+This service retrieves access data from Kafka, connects to a Git repository, retrieves commits, and stores them in MongoDB.  
+It uses a **reactive programming model** based on **Spring WebFlux** and a **Kafka consumer built with Reactor Kafka** to provide non-blocking data flow.  
+JGit is used for interacting with Git repositories, and MongoDB is accessed in a reactive manner using `spring-boot-starter-data-mongodb-reactive`.
 
 ### git-repository-reader-client
 
-This service exposes REST endpoints. One of them sends a message to Kafka to start the process of fetching data from the Git repository. Other endpoints allow fetching information about already retrieved repositories or their statuses.
+This service exposes REST endpoints. One of them sends a message to Kafka to start the process of fetching data from the Git repository. Other endpoints allow fetching information about already retrieved repositories or their statuses.  
+It is based on **Spring WebMVC** and provides **OpenAPI documentation** via Swagger.
 
 #### Swagger
 
@@ -20,7 +23,10 @@ This service exposes REST endpoints. One of them sends a message to Kafka to sta
 - **Java 21** – the version of Java used in the project.
 - **Maven** – a tool for managing dependencies and building the project.
 - **Spring Boot** – a framework for building web applications.
+- **Spring WebMVC** – used in the client module to expose classic REST endpoints.
+- **Spring WebFlux** – used in the engine module to provide a fully reactive, non-blocking approach.
 - **Kafka** – a message queue system used in the project for communication between services.
+- **Reactor Kafka** – used in the engine module for reactive Kafka consumption.
 - **MongoDB** – a NoSQL database used to store information about repositories.
 - **Docker & Docker Compose** – for running containers with MongoDB, Kafka, and for testing.
 - **Resilience4j** – for implementing **Circuit Breaker** and **Retry** patterns, ensuring application resilience in the face of external system failures.
