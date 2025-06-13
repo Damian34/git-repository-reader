@@ -1,7 +1,7 @@
 package com.damian34.gitreader.infrastructure.service;
 
-import com.damian34.gitreader.exception.GitRepositoryException;
-import com.damian34.gitreader.infrastructure.service.repository.JGitRepositoryLoader;
+import com.damian34.gitreader.infrastructure.exception.GitRepositoryException;
+import com.damian34.gitreader.infrastructure.service.loader.JGitRepositoryLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

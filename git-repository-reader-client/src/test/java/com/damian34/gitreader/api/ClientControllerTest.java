@@ -1,15 +1,21 @@
 package com.damian34.gitreader.api;
 
-import com.damian34.gitreader.TestContainerInitializer;
+import com.damian34.gitreader.config.TestContainerKafkaInitializer;
+import com.damian34.gitreader.config.TestContainerMongoInitializer;
 import com.damian34.gitreader.api.protocol.reqeust.GitCredentials;
 import com.damian34.gitreader.api.protocol.reqeust.GitCredentialsRequest;
 import com.damian34.gitreader.api.protocol.reqeust.GitUrlRequest;
-import com.damian34.gitreader.infrastructure.db.GitRepositoryDocumentRepository;
-import com.damian34.gitreader.infrastructure.service.kafka.sender.KafkaCredentialsMessageSender;
-import com.damian34.gitreader.model.ProcessStatus;
-import com.damian34.gitreader.model.document.GitRepositoryDocument;
-import com.damian34.gitreader.model.repository.Branch;
-import com.damian34.gitreader.model.repository.Commit;
+import com.damian34.gitreader.infrastructure.repository.GitRepositoryDocumentRepository;
+import com.damian34.gitreader.infrastructure.service.CredentialsSenderKafka;
+import com.damian34.gitreader.ProcessStatus;
+import com.damian34.gitreader.document.GitRepositoryDocument;
+import com.damian34.gitreader.repository.Branch;
+import com.damian34.gitreader.repository.Commit;
+import com.damian34.gitreader.api.protocol.mapper.GitProtocolMapper;
+import com.damian34.gitreader.api.protocol.response.GitRepositoryResponse;
+import com.damian34.gitreader.domain.GitRepositoryClientFacade;
+import com.damian34.gitreader.domain.dto.GitRepositoryDto;
+import com.damian34.gitreader.domain.exception.GitRepositoryDeleteException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
@@ -29,12 +35,18 @@ import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @AutoConfigureMockMvc
 @SpringBootTest
-@ContextConfiguration(initializers = TestContainerInitializer.class)
+@ContextConfiguration(initializers = {
+        TestContainerMongoInitializer.class,
+        TestContainerKafkaInitializer.class
+})
 class ClientControllerTest {
 
     private static final String REPOSITORY_URL = "https://github.com/Damian34/spring-security-jwt-auth";
@@ -49,7 +61,7 @@ class ClientControllerTest {
     private GitRepositoryDocumentRepository gitRepositoryDocumentRepository;
 
     @MockitoBean
-    private KafkaCredentialsMessageSender kafkaCredentialsMessageSender;
+    private CredentialsSenderKafka credentialsMessageProducer;
 
     @BeforeEach
     void setUp() {
@@ -64,13 +76,13 @@ class ClientControllerTest {
         GitCredentialsRequest request = new GitCredentialsRequest(List.of(credentials));
 
         // when
-        mockMvc.perform(post("/api/git/repository/load")
+        mockMvc.perform(post("/api/v1/git/repository/load")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
         // then
-        Mockito.verify(kafkaCredentialsMessageSender, Mockito.times(1)).sendMessage(Mockito.any());
+        Mockito.verify(credentialsMessageProducer, Mockito.times(1)).send(Mockito.any());
 
         var repositoryDocuments = gitRepositoryDocumentRepository.findAll();
         var document = repositoryDocuments.getFirst();
@@ -85,7 +97,7 @@ class ClientControllerTest {
         GitCredentialsRequest request = new GitCredentialsRequest(List.of(credentials));
 
         // when and then
-        mockMvc.perform(post("/api/git/repository/load")
+        mockMvc.perform(post("/api/v1/git/repository/load")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -97,7 +109,7 @@ class ClientControllerTest {
         GitCredentialsRequest request = new GitCredentialsRequest(new ArrayList<>());
 
         // when and then
-        mockMvc.perform(post("/api/git/repository/load")
+        mockMvc.perform(post("/api/v1/git/repository/load")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -111,7 +123,7 @@ class ClientControllerTest {
         GitRepositoryDocument repositoryInDb = createRepository(request.getUrl());
 
         // when and then
-        mockMvc.perform(get("/api/git/repository")
+        mockMvc.perform(get("/api/v1/git/repository")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -126,7 +138,7 @@ class ClientControllerTest {
         GitUrlRequest request = new GitUrlRequest(REPOSITORY_URL);
 
         // when and then
-        mockMvc.perform(get("/api/git/repository")
+        mockMvc.perform(get("/api/v1/git/repository")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -136,7 +148,7 @@ class ClientControllerTest {
     @Test
     void shouldGetGitRepositoriesEmptyWhenNotExistsAny() {
         // when and then
-        mockMvc.perform(get("/api/git/repository/all")
+        mockMvc.perform(get("/api/v1/git/repository/all")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -150,11 +162,47 @@ class ClientControllerTest {
         createRepository(REPOSITORY_URL);
 
         // when and then
-        mockMvc.perform(get("/api/git/repository/all")
+        mockMvc.perform(get("/api/v1/git/repository/all")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isNotEmpty());
+    }
+
+    @Test
+    void shouldDeleteGitRepositoryWhenStatusIsCompleted() throws Exception {
+        // given
+        GitRepositoryDocument repository = createRepository(REPOSITORY_URL);
+        repository.setStatus(ProcessStatus.COMPLETED);
+        gitRepositoryDocumentRepository.save(repository);
+        GitUrlRequest request = new GitUrlRequest(REPOSITORY_URL);
+
+        // when & then
+        mockMvc.perform(delete("/api/v1/git/repository")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+        // verify
+        assertThat(gitRepositoryDocumentRepository.findById(REPOSITORY_URL)).isEmpty();
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingRepositoryWithNonCompletedStatus() throws Exception {
+        // given
+        GitRepositoryDocument repository = createRepository(REPOSITORY_URL);
+        repository.setStatus(ProcessStatus.WAITING);
+        gitRepositoryDocumentRepository.save(repository);
+        GitUrlRequest request = new GitUrlRequest(REPOSITORY_URL);
+
+        // when & then
+        mockMvc.perform(delete("/api/v1/git/repository")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict());
+
+        // verify
+        assertThat(gitRepositoryDocumentRepository.findById(REPOSITORY_URL)).isPresent();
     }
 
     private GitRepositoryDocument createRepository(String url) {

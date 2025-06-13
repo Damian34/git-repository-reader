@@ -1,12 +1,12 @@
 package com.damian34.gitreader.infrastructure.service;
 
-import com.damian34.gitreader.domain.service.GitRepositoryReader;
-import com.damian34.gitreader.exception.GitRepositoryException;
-import com.damian34.gitreader.infrastructure.service.repository.JGitRepository;
-import com.damian34.gitreader.infrastructure.service.repository.JGitRepositoryLoader;
-import com.damian34.gitreader.model.queue.GitConnectionCredentials;
-import com.damian34.gitreader.model.repository.Branch;
-import com.damian34.gitreader.model.repository.Commit;
+import com.damian34.gitreader.domain.GitRepositoryReader;
+import com.damian34.gitreader.infrastructure.exception.GitRepositoryException;
+import com.damian34.gitreader.infrastructure.service.loader.JGitRepository;
+import com.damian34.gitreader.infrastructure.service.loader.JGitRepositoryLoader;
+import com.damian34.gitreader.queue.GitConnectionCredentials;
+import com.damian34.gitreader.repository.Branch;
+import com.damian34.gitreader.repository.Commit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;

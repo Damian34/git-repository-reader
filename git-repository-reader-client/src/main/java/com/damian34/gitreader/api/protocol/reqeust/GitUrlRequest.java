@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Zapytanie o pobieranie repozytorium Git", requiredProperties = {"url"})
+@Schema(description = "Request for retrieving Git repository information")
 public class GitUrlRequest {
-    @Schema(description = "URL repozytorium Git", example = "https://github.com/Damian34/git-repository-reader")
+    @Schema(description = "Git repository URL", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "URL cannot be blank")
     private String url;
 }

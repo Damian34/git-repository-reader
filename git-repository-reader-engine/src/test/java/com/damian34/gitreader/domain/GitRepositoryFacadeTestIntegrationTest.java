@@ -1,12 +1,12 @@
 package com.damian34.gitreader.domain;
 
-import com.damian34.gitreader.GitData;
-import com.damian34.gitreader.TestContainerInitializer;
-import com.damian34.gitreader.domain.service.GitRepositoryFacade;
-import com.damian34.gitreader.exception.NotFoundGitReaderException;
-import com.damian34.gitreader.infrastructure.db.GitRepositoryDocumentRepository;
-import com.damian34.gitreader.model.ProcessStatus;
-import com.damian34.gitreader.model.queue.GitConnectionCredentials;
+import com.damian34.gitreader.GitRepositoryUrls;
+import com.damian34.gitreader.config.TestContainerKafkaInitializer;
+import com.damian34.gitreader.config.TestContainerMongoInitializer;
+import com.damian34.gitreader.infrastructure.exception.NotFoundGitReaderException;
+import com.damian34.gitreader.infrastructure.repository.GitRepositoryDocumentRepository;
+import com.damian34.gitreader.ProcessStatus;
+import com.damian34.gitreader.queue.GitConnectionCredentials;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
-@ContextConfiguration(initializers = TestContainerInitializer.class)
+@ContextConfiguration(initializers = {
+        TestContainerMongoInitializer.class,
+        TestContainerKafkaInitializer.class
+})
 class GitRepositoryFacadeTestIntegrationTest {
 
     @Autowired
@@ -49,7 +52,7 @@ class GitRepositoryFacadeTestIntegrationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { GitData.GITHUB_SECURITY_JWT_URL, GitData.GITHUB_SECURITY_JWT_URL_DOMAIN})
+    @ValueSource(strings = { GitRepositoryUrls.GITHUB_SECURITY_JWT_URL, GitRepositoryUrls.GITHUB_SECURITY_JWT_URL_DOMAIN})
     void shouldProcessGithubRepositories(String url) {
         // given
         var credentials = new GitConnectionCredentials(url, null, null, null);

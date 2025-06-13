@@ -1,7 +1,7 @@
 package com.damian34.gitreader.infrastructure.mapper;
 
 import com.damian34.gitreader.domain.dto.GitRepositoryDto;
-import com.damian34.gitreader.model.document.GitRepositoryDocument;
+import com.damian34.gitreader.document.GitRepositoryDocument;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

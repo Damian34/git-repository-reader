@@ -9,18 +9,18 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Dane uwierzytelniające do repozytorium Git", requiredProperties = {"url"})
+@Schema(description = "Git repository authentication credentials")
 public class GitCredentials {
-    @Schema(description = "URL repozytorium Git", example = "https://github.com/Damian34/git-repository-reader")
+    @Schema(description = "Git repository URL", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "URL cannot be blank")
     private String url;
     
-    @Schema(description = "Nazwa użytkownika do uwierzytelnienia (opcjonalne)", example = "username")
+    @Schema(description = "Username for authentication (optional)")
     private String username;
     
-    @Schema(description = "Hasło do uwierzytelnienia (opcjonalne)", example = "password")
+    @Schema(description = "Password for authentication (optional)")
     private String password;
     
-    @Schema(description = "Token dostępu do repozytorium (opcjonalne)", example = "ghp_123abc456def")
+    @Schema(description = "Access token for repository (optional)")
     private String token;
 }

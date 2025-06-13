@@ -12,10 +12,10 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Zapytanie do przetworzenia repozytoriów Git", requiredProperties = {"credentials"})
+@Schema(description = "Request for processing Git repositories")
 public class GitCredentialsRequest {
-    @Schema(description = "Lista danych uwierzytelniających do repozytoriów Git")
-    @Valid
+    @Schema(description = "List of Git repository authentication credentials", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "Credentials list cannot be empty")
+    @Valid
     private List<GitCredentials> credentials;
 }

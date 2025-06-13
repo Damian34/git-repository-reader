@@ -32,14 +32,14 @@ resilience4j:
         permittedNumberOfCallsInHalfOpenState: 3
         slidingWindowSize: 4
         recordExceptions:
-          - com.damian34.gitreader.exception.GitRepositoryConnectionException
+          - com.damian34.gitreader.infrastructure.exception.GitConnectionException
   retry:
     instances:
       git-repository-loader:
         maxAttempts: 5
         waitDuration: 30s
         retryExceptions:
-          - com.damian34.gitreader.exception.GitRepositoryConnectionException
+          - com.damian34.gitreader.infrastructure.exception.GitConnectionException
 
 jgit:
   temp-root-folder: ${TEMP_ROOT_FOLDER:tmp_jgit_repositories}

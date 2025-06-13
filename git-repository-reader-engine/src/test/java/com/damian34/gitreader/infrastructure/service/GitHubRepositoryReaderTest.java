@@ -1,8 +1,9 @@
 package com.damian34.gitreader.infrastructure.service;
 
-import com.damian34.gitreader.GitData;
-import com.damian34.gitreader.TestContainerInitializer;
-import com.damian34.gitreader.exception.GitRepositoryException;
+import com.damian34.gitreader.GitRepositoryUrls;
+import com.damian34.gitreader.config.TestContainerKafkaInitializer;
+import com.damian34.gitreader.config.TestContainerMongoInitializer;
+import com.damian34.gitreader.infrastructure.exception.GitRepositoryException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -12,7 +13,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
-@ContextConfiguration(initializers = TestContainerInitializer.class)
+@ContextConfiguration(initializers = {
+        TestContainerMongoInitializer.class,
+        TestContainerKafkaInitializer.class
+})
 class GitHubRepositoryReaderTest {
 
     @Autowired
@@ -20,11 +24,11 @@ class GitHubRepositoryReaderTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            GitData.GITHUB_USER_REPO_HTTPS,
-            GitData.GITHUB_USER_REPO_HTTP,
-            GitData.GITHUB_USER_REPO_DOMAIN,
-            GitData.GITHUB_USER_REPO_WWW,
-            GitData.GITHUB_USER_REPO_TREE
+            GitRepositoryUrls.GITHUB_USER_REPO_HTTPS,
+            GitRepositoryUrls.GITHUB_USER_REPO_HTTP,
+            GitRepositoryUrls.GITHUB_USER_REPO_DOMAIN,
+            GitRepositoryUrls.GITHUB_USER_REPO_WWW,
+            GitRepositoryUrls.GITHUB_USER_REPO_TREE
     })
     void shouldReturnTrueWhenGitHubUrls(String url) {
         // when & then
@@ -33,8 +37,8 @@ class GitHubRepositoryReaderTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            GitData.GITLAB_URL,
-            GitData.BITBUCKET_URL,
+            GitRepositoryUrls.GITLAB_URL,
+            GitRepositoryUrls.BITBUCKET_URL,
             "invalid-url"
     })
     void shouldReturnFalseWhenNotGitHubUrls(String url) {
@@ -46,25 +50,25 @@ class GitHubRepositoryReaderTest {
     void shouldReturnProperGitUrl() {
         // when & then
         Assertions.assertEquals(
-                GitData.GIT_REPOSITORY_READER_URL, 
-                gitHubRepositoryReader.buildGitCloneUrl(GitData.GIT_REPOSITORY_READER_URL_NO_EXTENSION)
+                GitRepositoryUrls.GIT_REPOSITORY_READER_URL,
+                gitHubRepositoryReader.buildGitCloneUrl(GitRepositoryUrls.GIT_REPOSITORY_READER_URL_NO_EXTENSION)
         );
         
         Assertions.assertEquals(
-                GitData.GIT_REPOSITORY_READER_URL, 
-                gitHubRepositoryReader.buildGitCloneUrl(GitData.GIT_REPOSITORY_READER_URL_DOMAIN)
+                GitRepositoryUrls.GIT_REPOSITORY_READER_URL,
+                gitHubRepositoryReader.buildGitCloneUrl(GitRepositoryUrls.GIT_REPOSITORY_READER_URL_DOMAIN)
         );
         
         Assertions.assertEquals(
-                GitData.GIT_REPOSITORY_READER_URL, 
-                gitHubRepositoryReader.buildGitCloneUrl(GitData.GIT_REPOSITORY_READER_URL)
+                GitRepositoryUrls.GIT_REPOSITORY_READER_URL,
+                gitHubRepositoryReader.buildGitCloneUrl(GitRepositoryUrls.GIT_REPOSITORY_READER_URL)
         );
     }
 
     @Test
     void shouldThrowExceptionWhenInvalidFormat() {
         // given
-        String url = GitData.INVALID_URL;
+        String url = GitRepositoryUrls.INVALID_URL;
 
         // when & then
         Assertions.assertThrows(GitRepositoryException.class, () -> gitHubRepositoryReader.buildGitCloneUrl(url));
