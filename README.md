@@ -1,6 +1,54 @@
 # Git Repository Reader
 
-The project is designed as an application based on two microservices. The architecture utilizes a message queue system (Kafka) to enable communication between services. The goal of the application is to retrieve commit data from specified Git repositories and store it in a MongoDB database. The project also features resilient communication through the use of Circuit Breaker and Retry patterns with Resilience4j, and utilizes Docker and Docker Compose for containerized environments.
+## Summary
+
+I planned to build a project consisting of at least 2 microservices and a message queue system like Kafka, mainly because at the time I had no such example in my repository.
+At first, I was looking for a reasonably simple data source to fetch and process (ideally without the need to use Selenium).  
+I ended up choosing Git repositories. It seemed straightforward at first, but as I dug deeper into how Git is structured, things got complicated.
+
+### What's under the hood of a Git repository?
+
+Git data has a graph structure. I tried working with tools like **JGit** and **Git CLI**.  
+A branch in Git is just a reference (a HEAD pointer) to a commit in this graph. You can traverse it in any direction.  
+Branches can have many merges from top (e.g. merging `dev` into `main`) and bottom (e.g. creating `dev` from `main`, pulling changes from other branches, etc.).
+
+This means a branch can have multiple splits from top and bottom.
+Git keeps track of the top (HEAD), but not the "bottom", so when you ask Git CLI for all commits in a branch, you get everything from HEAD down to the root of the entire commit history.
+
+But what I needed was the exact point where a branch (e.g. `dev`) was created.
+
+#### Possible solutions:
+
+- Tools like `merge-base` only work based on commit history and easily get confused by squashes, rebases, and other rewriting.
+- Another idea was to check the number of branch-outs per commit, but this also wasn’t reliable. 
+  I couldn't tell whether a given commit was a creation point or a later merge from another branch.
+
+For example, sure, I can get the HEAD, but how can I be sure that an earlier commit split wasn’t just a `main` → `dev` pull update?
+
+Eventually, I dropped the idea of parsing the repository/branch structure in Git. That wasn’t my main goal anyway, I just needed a dataset for the app.
+
+---
+
+#### What went relatively well
+
+- I split the app into two microservices: `engine` (processing) and `client` (presentation layer)
+- I added Kafka, even though it’s just one communication channel between the services
+- I extracted a shared library (though I’m aware that might not be a best practice in microservice architecture)
+- I implemented the **Circuit Breaker** pattern
+- I used MongoDB, which is now at least represented in one of my portfolio projects
+
+---
+
+#### What could have gone better
+
+- Since I didn’t succeed in normalizing repository data, I ended up storing everything directly in MongoDB  
+  and didn’t convert it into structured entities in a relational database like Postgres  
+  (this could’ve been a great reason to create an extra microservice for normalization and event-based communication)
+- Both the `client` and `engine` services share a single MongoDB instance, not ideal for a proper Kubernetes setup, although technically it could still work.
+- I used DeepSource for pipeline reports because it seemed like the best free option, but later I realized it doesn't fully support Java in the free tier, so I partially abandoned it.
+- I could have started the project with a dedicated `dev` branch from the beginning, instead of committing most of the work directly to `main`.
+
+---
 
 ### git-repository-reader-engine
 
@@ -13,10 +61,10 @@ JGit is used for interacting with Git repositories, and MongoDB is accessed in a
 This service exposes REST endpoints. One of them sends a message to Kafka to start the process of fetching data from the Git repository. Other endpoints allow fetching information about already retrieved repositories or their statuses.  
 It is based on **Spring WebMVC** and provides **OpenAPI documentation** via Swagger.
 
-#### Swagger
+## Swagger
 
-- **Swagger UI**: [http://localhost:8082/swagger-ui/index.html]
-- **API Documentation (JSON)**: [http://localhost:8082/v3/api-docs]
+- **Swagger UI**: http://localhost:8082/swagger-ui/index.html
+- **API Documentation (JSON)**: http://localhost:8082/v3/api-docs
 
 ## Technologies
 
@@ -46,7 +94,4 @@ It is based on **Spring WebMVC** and provides **OpenAPI documentation** via Swag
 
 ### Installation Steps
 
-- git clone https://github.com/Damian34/git-repository-reader.git
-- cd git-repository-reader
-- mvn clean install (or alternatively, to skip tests: mvn clean install -Dtest)
-- docker-compose up
+Can run api with docker-compose.yaml
