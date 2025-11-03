@@ -2,14 +2,14 @@
 
 ## Summary
 
-I planned to build a project consisting of at least 2 microservices and a message queue system like Kafka, mainly because at the time I had no such example in my repository.
-At first, I was looking for a reasonably simple data source to fetch and process (ideally without the need to use Selenium).  
-I ended up choosing Git repositories. It seemed straightforward at first, but as I dug deeper into how Git is structured, things got complicated.
+I built the project with **2 microservices** communicating through **Apache Kafka**, primarily to have a portfolio example of a distributed system.
+Initially, I wanted a simple data source for the app. Something that didn’t require scraping tools like Selenium.  
+I chose **Git repositories**. It seemed straightforward, but once I started analyzing Git’s internal structure, it turned out to be a surprisingly complex graph..
 
-### What's under the hood of a Git repository?
+### How a Git Repository Looks and Works?
 
-Git data has a graph structure. I tried working with tools like **JGit** and **Git CLI**.  
-A branch in Git is just a reference (a HEAD pointer) to a commit in this graph. You can traverse it in any direction.  
+Git data has a **graph** structure. I tried working with tools like **JGit** and **Git CLI**.  
+A branch in Git is just a reference (a HEAD pointer) to a commit in this graph. You can navigate the repository history in any direction with checkouts.
 Branches can have many merges from top (e.g. merging `dev` into `main`) and bottom (e.g. creating `dev` from `main`, pulling changes from other branches, etc.).
 
 This means a branch can have multiple splits from top and bottom.
@@ -26,6 +26,7 @@ But what I needed was the exact point where a branch (e.g. `dev`) was created.
 For example, sure, I can get the HEAD, but how can I be sure that an earlier commit split wasn’t just a `main` → `dev` pull update?
 
 Eventually, I dropped the idea of parsing the repository/branch structure in Git. That wasn’t my main goal anyway, I just needed a dataset for the app.
+Besides, the Git graph structure was neither an issue for storing data in MongoDB nor for mapping with a standard ObjectMapper.
 
 ---
 
@@ -39,14 +40,14 @@ Eventually, I dropped the idea of parsing the repository/branch structure in Git
 
 ---
 
-#### What could have gone better
+#### What could have been done better
 
 - Since I didn’t succeed in normalizing repository data, I ended up storing everything directly in MongoDB  
   and didn’t convert it into structured entities in a relational database like Postgres  
-  (this could’ve been a great reason to create an extra microservice for normalization and event-based communication)
-- Both the `client` and `engine` services share a single MongoDB instance, not ideal for a proper Kubernetes setup, although technically it could still work.
+  (this could’ve been a good opportunity to create an extra microservice for normalization and event-based communication)
+- Both the `client` and `engine` services share a single MongoDB instance, which is not ideal for a proper Kubernetes setup, although technically it could still work.
 - I used DeepSource for pipeline reports because it seemed like the best free option, but later I realized it doesn't fully support Java in the free tier, so I partially abandoned it.
-- I could have started the project with a dedicated `dev` branch from the beginning, instead of committing most of the work directly to `main`.
+- I could have started the project with a dedicated `dev` branch from the beginning, instead of committing most of the work directly to `main` which is commonly used as production branch.
 
 ---
 
@@ -94,4 +95,4 @@ It is based on **Spring WebMVC** and provides **OpenAPI documentation** via Swag
 
 ### Installation Steps
 
-Can run api with docker-compose.yaml
+Run the API using `docker-compose.yaml`, for example with Docker Desktop.
