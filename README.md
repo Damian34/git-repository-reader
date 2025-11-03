@@ -2,9 +2,10 @@
 
 ## Summary
 
-I built the project with **2 microservices** communicating through **Apache Kafka**, primarily to have a portfolio example of a distributed system.
+I built this experimental project with **2 microservices** communicating through **Apache Kafka**, primarily to serve as an example of a distributed system.
 Initially, I wanted a simple data source for the app. Something that didn’t require scraping tools like Selenium.  
-I chose **Git repositories**. It seemed straightforward, but once I started analyzing Git’s internal structure, it turned out to be a surprisingly complex graph..
+I chose **Git repositories**. It seemed straightforward, but once I started analyzing Git’s internal structure, it turned out to be a surprisingly complex graph.
+The project is intentionally simple and has some shortcomings, detailed in the points below.
 
 ### How a Git Repository Looks and Works?
 
