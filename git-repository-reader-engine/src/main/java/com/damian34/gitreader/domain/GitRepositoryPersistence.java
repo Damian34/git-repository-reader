@@ -5,7 +5,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-public interface GitRepositoryPersistenceService {
+public interface GitRepositoryPersistence {
 
     Mono<Void> cleanGitRepository(String url, String cloneUrl);
 

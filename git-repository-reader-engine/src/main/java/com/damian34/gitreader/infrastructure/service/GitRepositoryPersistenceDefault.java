@@ -1,6 +1,6 @@
 package com.damian34.gitreader.infrastructure.service;
 
-import com.damian34.gitreader.domain.GitRepositoryPersistenceService;
+import com.damian34.gitreader.domain.GitRepositoryPersistence;
 import com.damian34.gitreader.infrastructure.repository.GitRepositoryDocumentRepository;
 import com.damian34.gitreader.ExceptionDetails;
 import com.damian34.gitreader.ProcessStatus;
@@ -16,7 +16,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class GitRepositoryPersistenceServiceImpl implements GitRepositoryPersistenceService {
+public class GitRepositoryPersistenceDefault implements GitRepositoryPersistence {
     private final GitRepositoryDocumentRepository gitRepositoryDocumentRepository;
 
     @Override

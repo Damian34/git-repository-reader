@@ -7,7 +7,7 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 public class TestContainerMongoInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-    static final MongoDBContainer mongoContainer = new MongoDBContainer("mongo:8.0.10")
+    static final MongoDBContainer mongoContainer = new MongoDBContainer("mongo:8.2.1")
             .withEnv("MONGO_INITDB_DATABASE", "test_db")
             .waitingFor(Wait.forListeningPort());
 

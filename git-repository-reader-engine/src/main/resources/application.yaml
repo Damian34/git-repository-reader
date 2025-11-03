@@ -4,11 +4,11 @@ server:
 spring:
   data:
     mongodb:
-      uri: mongodb://root:pass123@localhost:27017/git_repository_db?authSource=admin
+      uri: ${MONGODB_URL:mongodb://root:pass123@localhost:27017/api-mongodb?authSource=admin}
   kafka:
-    bootstrap-servers: localhost:29092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_URL:localhost:29092}
     consumer:
-      group-id: git-app-group
+      group-id: ${KAFKA_GROUP_ID:git-api-group}
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer

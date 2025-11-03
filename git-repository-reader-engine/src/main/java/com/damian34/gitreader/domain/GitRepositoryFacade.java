@@ -14,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GitRepositoryFacade {
     private final List<GitRepositoryReader> gitRepositoryReaders;
-    private final GitRepositoryPersistenceService gitRepositoryPersistenceService;
+    private final GitRepositoryPersistence gitRepositoryPersistence;
     private final GitRepositoryValidator gitRepositoryValidator;
 
     public Mono<Void> processRepositoryData(GitConnectionCredentials credentials) {
@@ -35,7 +35,7 @@ public class GitRepositoryFacade {
                 .collectList()
                 .flatMap(branches ->
                         cleanRepositories(url, gitCloneUrl)
-                                .then(gitRepositoryPersistenceService.saveGitBranches(url, gitCloneUrl, branches))
+                                .then(gitRepositoryPersistence.saveGitBranches(url, gitCloneUrl, branches))
                 )
                 .onErrorResume(e -> handleError(url, gitCloneUrl, e))
                 .then();
@@ -44,11 +44,11 @@ public class GitRepositoryFacade {
     private Mono<Void> handleError(String url, String cloneUrl, Throwable e) {
         log.error("Error processing repository data for URL {}: {}", url, e.getMessage(), e);
         return cleanRepositories(url, cloneUrl)
-            .then(gitRepositoryPersistenceService.saveGitFail(url, e));
+            .then(gitRepositoryPersistence.saveGitFail(url, e));
     }
 
     private Mono<Void> cleanRepositories(String url, String cloneUrl) {
-        return gitRepositoryPersistenceService.cleanGitRepository(url, cloneUrl);
+        return gitRepositoryPersistence.cleanGitRepository(url, cloneUrl);
     }
 
     private GitRepositoryReader findReader(String url) {
